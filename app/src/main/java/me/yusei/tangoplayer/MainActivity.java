@@ -4,20 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
-import android.media.TimedText;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -42,158 +37,53 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import com.nononsenseapps.filepicker.Utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 1;
+    private static final int MY_PERMISSIONS_REQUEST_READ_STORAGE = 2;
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
     private static SimpleExoPlayer player;
-    private static Handler handler = new Handler();
-    private final SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
-
-        /** SurfaceViewが生成された時に呼び出される */
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            String path = getVideoFilePath();
-            Log.d("debug", path);
-            try {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                // MediaPlayerを生成
-                mMediaPlayer = new MediaPlayer();
-                // 動画ファイルをMediaPlayerに読み込ませる
-                mMediaPlayer.setDataSource(path);
-                // 読み込んだ動画ファイルを画面に表示する
-                mMediaPlayer.setDisplay(holder);
-                mMediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
-                    @Override
-                    public void onSeekComplete(MediaPlayer mp) {
-                        mp.start();
-                    }
-                });
-                mMediaPlayer.prepare();
-
-                //字幕の処理
-                mMediaPlayer.addTimedTextSource(mShowSubtile.getSubtitleFile(R.raw.test),
-                        MediaPlayer.MEDIA_MIMETYPE_TEXT_SUBRIP);
-                int textTrackIndex = mShowSubtile.findTrackIndexFor(
-                        MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT, mMediaPlayer.getTrackInfo());
-                if (textTrackIndex >= 0) {
-                    mMediaPlayer.selectTrack(textTrackIndex);
-                } else {
-                    Log.w("debug", "Cannot find text track!");
-                }
-                mMediaPlayer.setOnTimedTextListener(MainActivity.this);
-                //字幕の処理
-
-                startMedia.setText("pause");
-                mSeekBar.setMax(mMediaPlayer.getDuration());
-                Log.d("debug", "getDuration: " + getVideoDuration());
-                mMediaPlayer.seekTo(getVideoDuration());
-                //mSeekBar.setProgress(mMediaPlayer.getCurrentPosition());
-                mMediaPlayer.start();
-                //スタートされない？
-                new Thread(MainActivity.this).start();
-
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-
-            } catch (SecurityException e) {
-                e.printStackTrace();
-
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-
-            }
-        }
-
-        //
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-        }
-
-        /** SurfaceViewが終了した時に呼び出される */
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            //再生時間を保存する
-            Log.d("debug", "checkPermission2");
-            if (mMediaPlayer != null) {
-                int duration = mMediaPlayer.getCurrentPosition();
-                Log.d("debug", "getCurrentPosition:" + duration);
-                if (duration != mMediaPlayer.getDuration()) {
-                    setVideoDuration(duration);
-                } else {
-                    setVideoDuration(0);
-                }
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-            }
-        }
-
-    };
     private SimpleExoPlayerView mSimpleExoPlayerView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        mShowSubtile = new ShowSubtitle(this);
         setContentView(R.layout.activity_main);
-//        mSeekBar = (SeekBar) findViewById(R.id.mediaSeekBar);
-//        startMedia = (Button) findViewById(R.id.playButton);
-//        fileButton = (Button) findViewById(R.id.fileButton);
-//        subtitle = (TextView) findViewById(R.id.subtitle);
-//        fileButton.setOnClickListener(this);
-//        startMedia.setOnClickListener(this);
-//        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                try {
-//                    if (mMediaPlayer == null) {
-//                        Toast.makeText(getApplicationContext(), "Media is not running",
-//                                Toast.LENGTH_SHORT).show();
-//                        seekBar.setProgress(0);
-//                    }else if (mMediaPlayer.isPlaying() || mMediaPlayer != null) {
-//                        if (fromUser) {
-//                            Log.d("debug", "seek to progress");
-//                            mMediaPlayer.pause();
-//                            mMediaPlayer.seekTo(progress);
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    Log.e("seek bar", "" + e);
-//                    seekBar.setEnabled(false);
-//
-//                }
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//        });
-//        mSeekBar.setEnabled(true);
-//
-//        //mSeekBar.setEnabled(false);
+        Button file = (Button) findViewById(R.id.file_button);
+        file.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lunchFilePicker();
+            }
+        });
 
+        //書き込み権限確認
+        checkPermission();
+        if (getVideoFilePath() == null || playVideoFromFileUri(getVideoFilePath()) == false) {
+            lunchFilePicker();
+        }
+    }
+
+
+    /**
+     * Play Video From uri and return result
+     *
+     * @param uri
+     * @return true if uri is valid and playable. false if uri is null or invalid.
+     */
+    private boolean playVideoFromFileUri(Uri uri) {
+        if (uri == null) {
+            return false;
+        }
         // 1. Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
@@ -202,26 +92,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 2. Create the player
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
 
+        // 3. Bind the player to the view.
+        mSimpleExoPlayerView = new SimpleExoPlayerView(this);
+        mSimpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+
+        //Set media controller
+        mSimpleExoPlayerView.setUseController(true);
+        mSimpleExoPlayerView.requestFocus();
+
         // Bind the player to the view.
-        mSimpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.SimpleExoPlayerView);
         mSimpleExoPlayerView.setPlayer(player);
 
-        //書き込み権限確認
-        checkPermission();
-
-        if (getVideoFilePath() == null) {
-            lunchFilePicker();
-        } else {
-            while (true) {
-                if (prepareExoPlayerFromFileUri(getVideoFilePath()) == false) {
-                    Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.", Toast.LENGTH_SHORT);
-                    lunchFilePicker();
-                } else {
-                    break;
-                }
-            }
+        if (prepareExoPlayerFromFileUri(uri) == false) {
+            Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[playVideoFromFileUri]", Toast.LENGTH_SHORT);
+            player.release();
+            return false;
         }
-        player.setVideoTextureView(textureView);
+
+        SimpleExoPlayerView playerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+        playerView.setPlayer(player);
+        return true;
     }
 
     /**
@@ -277,12 +167,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return false;
         }
         //Remove extension
-        uriString = uriString.substring(0, numExtension);
+        uriString = uriString.substring(0, numExtension + 1);
         Iterator<String> iterator = subtitleSupportFormatList.iterator();
         while (iterator.hasNext()) {
             //extension removed filepath + subtitle extension = subtitleFilePath
             String subtitleFilePath = uriString + iterator.next();
-            File subtitleFile = new File(subtitleFilePath);
+            Uri subtitleFileUri = Uri.parse(subtitleFilePath);
+            File subtitleFile = new File(subtitleFileUri.getPath());
             if (subtitleFile.exists()) {
                 setSubtitleFilePath(Uri.parse(subtitleFilePath));
                 return true;
@@ -294,16 +185,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        player.release();
-
+        if (player != null) {
+            player.release();
+        }
     }
-
-    private void createSurfaceView() {
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-        // SurfaceViewにコールバックを設定
-        mHolder = mSurfaceView.getHolder();
-        mHolder.addCallback(mCallback);
-    }
+//
+//    private void createSurfaceView() {
+//        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
+//        // SurfaceViewにコールバックを設定
+//        mHolder = mSurfaceView.getHolder();
+//        mHolder.addCallback(mCallback);
+//    }
 
     private void checkPermission() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -320,9 +212,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // MY_PERMISSIONS_REQUEST_READ_CONTACTSはアプリ内で独自定義したrequestCodeの値
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
-
-            return;
         }
+        return;
     }
 
     @Override
@@ -430,28 +321,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void lunchFilePicker() {
-        // This always works
-        Log.d("debug", "this first?");
-        //Intent i = new Intent(getApplicationContext(), FilteredFilePickerActivity.class);
         Intent i = new Intent(getApplicationContext(), FilteredFilePickerActivity.class);
-
-        // This works if you defined the intent filter
-        // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-        // Set these depending on your use case. These are the defaults.
-//            i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-//            i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
-//            i.putExtra(FilteredFilePickerActivity.EXTRA_MODE, FilteredFilePickerActivity.MODE_FILE);
         // ここで複数ファイル選択できないようにしている？
         i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
         i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
         i.putExtra(FilteredFilePickerActivity.EXTRA_MODE, FilteredFilePickerActivity.MODE_FILE);
-
-        // Configure initial directory by specifying a String.
-        // You could specify a String like "/storage/emulated/0/", but that can
-        // dangerous. Always use Android's API calls to get paths to the SD-card or
-        // internal memory.
-        //i.putExtra(FilteredFilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
         i.putExtra(FilteredFilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
         startActivityForResult(i, FILE_CODE);
     }
@@ -460,74 +334,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (requestCode == FILE_CODE && resultCode == Activity.RESULT_OK) {
             // Use the provided utility method to parse the result
             List<Uri> files = Utils.getSelectedFilesFromResult(intent);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                //保存してるファイル名と同じときは保存する必要ない　違うときだけ保存と保持している生成時間を初期化
-                if (file.getPath().compareTo(getVideoFilePath()) != 0) {
-                    setVideoDuration(0);
-                    setVideoFilePath(file.getPath());
-                }
-                if (mMediaPlayer != null) {
-                    mMediaPlayer.release();
-                    mMediaPlayer = null;
-                }
-                createSurfaceView();
+//            for (Uri uri: files) {
+//                File file = Utils.getFileForUri(uri);
+//                // Do something with the result...
+//            }
+            File file = Utils.getFileForUri(files.get(0));
+            Uri videoFile = Uri.fromFile(file);
+            if (player != null) {
+                player.release();
             }
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v.equals(startMedia)) {
-            if (mMediaPlayer == null) {
-                lunchFilePicker();
-                mSeekBar.setEnabled(true);
-            }
-            if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
-                startMedia.setText("play");
+            if (playVideoFromFileUri(videoFile) != false) {
+                setVideoFilePath(videoFile);
             } else {
-                mMediaPlayer.start();
-                startMedia.setText("pause");
+                Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT);
+                lunchFilePicker();
             }
-        }
-        if (v.equals(fileButton)) {
-            lunchFilePicker();
-        }
-    }
+//            File file = new File(videoFile.getPath());
+//            String scheme = videoFile.getScheme();
+//            String path = null;
+//            if ("file".equals(scheme)) {
+//                path = videoFile.getPath();
+//            } else if("content".equals(scheme)) {
+//                ContentResolver contentResolver = this.getContentResolver();
+//                Cursor cursor = contentResolver.query(videoFile, new String[] { MediaStore.MediaColumns.DATA }, null, null, null);
+//                if (cursor != null) {
+//                    cursor.moveToFirst();
+//                    path = cursor.getString(0);
+//                    cursor.close();
+//                }
+//            }
+//            File file2 = null == path ? null : new File(path);
+//
+//            if(file.exists() != false){
+//                System.out.println("file exists");
+//            }
+//            setVideoFilePath(videoFile);
+//            playVideoFromFileUri(videoFile);
+//
+//            for (Uri uri: files) {
+//                //保存してるファイル名と同じときは保存する必要ない　違うときだけ保存と保持している生成時間を初期化
+//                if(uri.compareTo(getVideoFilePath()) != 0) {
+//                    setVideoDuration(0);
+//                    setVideoFilePath(uri);
+//                }
+//            }
 
-
-    @Override
-    public void run() {
-        int currentPosition = mMediaPlayer.getCurrentPosition();
-        int total = mMediaPlayer.getDuration();
-
-        while (mMediaPlayer != null && currentPosition < total) {
-            try {
-                //Log.d("debug", "thread run success");
-                Thread.sleep(1000);
-                currentPosition = mMediaPlayer.getCurrentPosition();
-            } catch (InterruptedException e) {
-                return;
-            } catch (Exception e) {
-                return;
-            }
-            mSeekBar.setProgress(currentPosition);
-        }
-    }
-
-    @Override
-    public void onTimedText(final MediaPlayer mp, final TimedText text) {
-        if (text != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d("debug", "getCurrentPosition");
-                    int seconds = mp.getCurrentPosition() / 1000;
-                    subtitle.setText("[" + mShowSubtile.secondsToDuration(seconds) + "] "
-                            + text.getText());
-                }
-            });
         }
     }
+
+//
+//    @Override
+//    public void onClick(View v) {
+//        if (v.equals(startMedia)) {
+//            if (mMediaPlayer == null) {
+//                lunchFilePicker();
+//                mSeekBar.setEnabled(true);
+//            }
+//            if (mMediaPlayer.isPlaying()) {
+//                mMediaPlayer.pause();
+//                startMedia.setText("play");
+//            } else {
+//                mMediaPlayer.start();
+//                startMedia.setText("pause");
+//            }
+//        }
+//        if (v.equals(fileButton)) {
+//            lunchFilePicker();
+//        }
+//    }
+
 }
