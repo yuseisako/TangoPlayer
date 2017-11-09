@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -34,6 +35,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.google.android.exoplayer2.util.Util;
 import com.nononsenseapps.filepicker.Utils;
 
 import java.io.File;
@@ -46,19 +48,21 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 1;
-    private static final int MY_PERMISSIONS_REQUEST_READ_STORAGE = 2;
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
     private static SimpleExoPlayer player;
     private SimpleExoPlayerView mSimpleExoPlayerView;
+    private boolean shouldAutoPlay;
+    private DefaultTrackSelector trackSelector;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button file = (Button) findViewById(R.id.file_button);
+
         file.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,13 +70,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        initializePlayer();
+
         //書き込み権限確認
         checkPermission();
+
+    }
+
+    private void initializePlayer(){
         if (getVideoFilePath() == null || playVideoFromFileUri(getVideoFilePath()) == false) {
             lunchFilePicker();
         }
     }
 
+    private void releasePlayer() {
+        if (player != null) {
+            shouldAutoPlay = player.getPlayWhenReady();
+            player.release();
+            player = null;
+            trackSelector = null;
+        }
+    }
 
     /**
      * Play Video From uri and return result
@@ -87,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         // 1. Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        TrackSelector trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+        trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
 
         // 2. Create the player
         player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
@@ -99,13 +117,14 @@ public class MainActivity extends AppCompatActivity {
         //Set media controller
         mSimpleExoPlayerView.setUseController(true);
         mSimpleExoPlayerView.requestFocus();
+        mSimpleExoPlayerView.setControllerShowTimeoutMs(-1);
 
         // Bind the player to the view.
         mSimpleExoPlayerView.setPlayer(player);
 
         if (prepareExoPlayerFromFileUri(uri) == false) {
             Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[playVideoFromFileUri]", Toast.LENGTH_SHORT);
-            player.release();
+            releasePlayer();
             return false;
         }
 
@@ -185,9 +204,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (player != null) {
-            player.release();
-        }
+        releasePlayer();
     }
 //
 //    private void createSurfaceView() {
@@ -340,67 +357,40 @@ public class MainActivity extends AppCompatActivity {
 //            }
             File file = Utils.getFileForUri(files.get(0));
             Uri videoFile = Uri.fromFile(file);
-            if (player != null) {
-                player.release();
-            }
+            releasePlayer();
+
             if (playVideoFromFileUri(videoFile) != false) {
                 setVideoFilePath(videoFile);
             } else {
                 Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT);
                 lunchFilePicker();
             }
-//            File file = new File(videoFile.getPath());
-//            String scheme = videoFile.getScheme();
-//            String path = null;
-//            if ("file".equals(scheme)) {
-//                path = videoFile.getPath();
-//            } else if("content".equals(scheme)) {
-//                ContentResolver contentResolver = this.getContentResolver();
-//                Cursor cursor = contentResolver.query(videoFile, new String[] { MediaStore.MediaColumns.DATA }, null, null, null);
-//                if (cursor != null) {
-//                    cursor.moveToFirst();
-//                    path = cursor.getString(0);
-//                    cursor.close();
-//                }
-//            }
-//            File file2 = null == path ? null : new File(path);
-//
-//            if(file.exists() != false){
-//                System.out.println("file exists");
-//            }
-//            setVideoFilePath(videoFile);
-//            playVideoFromFileUri(videoFile);
-//
-//            for (Uri uri: files) {
-//                //保存してるファイル名と同じときは保存する必要ない　違うときだけ保存と保持している生成時間を初期化
-//                if(uri.compareTo(getVideoFilePath()) != 0) {
-//                    setVideoDuration(0);
-//                    setVideoFilePath(uri);
-//                }
-//            }
-
         }
     }
 
-//
-//    @Override
-//    public void onClick(View v) {
-//        if (v.equals(startMedia)) {
-//            if (mMediaPlayer == null) {
-//                lunchFilePicker();
-//                mSeekBar.setEnabled(true);
-//            }
-//            if (mMediaPlayer.isPlaying()) {
-//                mMediaPlayer.pause();
-//                startMedia.setText("play");
-//            } else {
-//                mMediaPlayer.start();
-//                startMedia.setText("pause");
-//            }
-//        }
-//        if (v.equals(fileButton)) {
-//            lunchFilePicker();
-//        }
-//    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if ((Util.SDK_INT <= 23 || player == null)) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
+    }
 
 }
