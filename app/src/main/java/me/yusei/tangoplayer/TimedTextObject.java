@@ -46,6 +46,7 @@ public class TimedTextObject {
     public String author = "";
     public String fileName = "";
     public String language = "";
+    public int lastIndex = -1;
 
     //list of captions (begin time, reference)
     //represented by a tree map to maintain order

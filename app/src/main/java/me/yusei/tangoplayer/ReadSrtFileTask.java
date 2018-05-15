@@ -40,25 +40,33 @@ import java.io.InputStreamReader;
  * @author J. David Requejo
  *
  */
-public class ReadSrtFileTask extends AsyncTask<Integer, Integer, Integer> {
+public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTextObject> {
 
-    private OnTaskCompleted listener;
+    private AsyncCallback asyncCallback = null;
     private TimedTextObject mTimedTextObject;
     private String mSubtitleFilePath;
-    private CallBackTask callbacktask;
 
     public void setSubtitleFilePath(String subtitleFilePath) {
         this.mSubtitleFilePath = subtitleFilePath;
     }
 
-    public ReadSrtFileTask(OnTaskCompleted listener){
-        this.listener=listener;
+    public ReadSrtFileTask(AsyncCallback asyncCallback){
+        this.asyncCallback = asyncCallback;
+    }
+
+    public void setTimedTextObject(TimedTextObject timedTextObject){
+        this.mTimedTextObject = timedTextObject;
+    }
+
+    public TimedTextObject getTimedTextObject(){
+        return mTimedTextObject;
     }
 
     @Override
-    protected Integer doInBackground(Integer... integers) {
+    protected TimedTextObject doInBackground(TimedTextObject... timedTextObjects) {
         try{
             parseFile();
+            return mTimedTextObject;
         }catch (IOException ioe){
             mTimedTextObject.warnings += "Caught IOException in parseFile, ReadSrtFileTask";
             Utility.errorLog("Caught IOException in parseFile()");
@@ -67,15 +75,24 @@ public class ReadSrtFileTask extends AsyncTask<Integer, Integer, Integer> {
     }
 
     @Override
-    protected  void onPreExecute(){
+    protected void onPreExecute(){
+        super.onPreExecute();
+        this.asyncCallback.onPreExecute();
         mTimedTextObject = new TimedTextObject();
     }
 
     @Override
-    protected void onPostExecute(Integer result) {
+    protected void onPostExecute(TimedTextObject result) {
         super.onPostExecute(result);
-        callbacktask.CallBack(mTimedTextObject);
-        listener.onTaskCompleted();
+        this.asyncCallback.onPostExecute(result);
+        //callbacktask.CallBack(mTimedTextObject);
+        //listener.onTaskCompleted();
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values){
+        super.onProgressUpdate(values);
+        this.asyncCallback.onProgressUpdate(values[0]);
     }
 
     public void parseFile() throws IOException {
@@ -167,7 +184,6 @@ public class ReadSrtFileTask extends AsyncTask<Integer, Integer, Integer> {
                 br.close();
             }
         }
-
         mTimedTextObject.built = true;
     }
 
@@ -190,17 +206,5 @@ public class ReadSrtFileTask extends AsyncTask<Integer, Integer, Integer> {
         return lines;
     }
 
-    public void setOnCallBack(CallBackTask _cbj) {
-        callbacktask = _cbj;
-    }
-
-    /**
-     * for Callback
-     * https://qiita.com/a_nishimura/items/1548e02b96bebd0d43e4
-     */
-    public static class CallBackTask {
-        public void CallBack(TimedTextObject timedTextObject) {
-        }
-    }
 
 }

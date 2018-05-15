@@ -25,8 +25,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.google.android.exoplayer:exoplayer:r2.5.4'
-    compile 'com.android.support:appcompat-v7:25.4.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.nononsenseapps:filepicker:4.1.0'
+    compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     testCompile 'junit:junit:4.12'
 }

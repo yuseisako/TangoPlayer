@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,18 +20,25 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
 import com.google.android.exoplayer2.source.SingleSampleMediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
@@ -46,17 +55,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
-public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
+public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 1;
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
-    private static SimpleExoPlayer player;
+    private SimpleExoPlayer player;
     private SimpleExoPlayerView mSimpleExoPlayerView;
     private boolean shouldAutoPlay;
     private DefaultTrackSelector trackSelector;
+    private TreeMap<Integer, Caption> captionTreeMap = new TreeMap<>();
+    public int preTime = 0;
+    public boolean isSeekBarMoved = false;
+    private Handler scrollSubtitleHandler = new Handler();
+    private Runnable scrollSubtitleRunnable;
+
+    private static MainActivity instance = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,15 +87,20 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
             }
         });
 
-        initializePlayer();
-
         //書き込み権限確認
         checkPermission();
 
+        instance = this;
+
+    }
+
+    public static MainActivity getInstance() {
+        return instance;
     }
 
     private void initializePlayer(){
         if (getVideoFilePath() == null || playVideoFromFilePath(getVideoFilePath()) == false) {
+            releasePlayer();
             lunchFilePicker();
         }else{
             // when video file path is invalid or no stored video file path => no seek.
@@ -90,11 +111,15 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
 
     private void releasePlayer() {
         if (player != null) {
+            //release Exoplayer
             shouldAutoPlay = player.getPlayWhenReady();
             player.release();
             setVideoDuration(player.getCurrentPosition());
             player = null;
             trackSelector = null;
+            //stop scrollSubtitle handler
+            Utility.infoLog("remove Callback");
+            scrollSubtitleHandler.removeCallbacks(scrollSubtitleRunnable);
         }
     }
 
@@ -102,25 +127,99 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
      * Run background async task: reading srt file, and call back this class.
      */
     private void startReadSrtFileTask(){
-        ReadSrtFileTask task = new ReadSrtFileTask(this);
-        task.setSubtitleFilePath(getSubtitleFilePath());
-        task.setOnCallBack(new ReadSrtFileTask.CallBackTask(){
-                @Override
-                public void CallBack(TimedTextObject tto){
-                    drawSubtitles(tto);
-                }
+        final TimedTextObject timedTextObject = new TimedTextObject();
+        ReadSrtFileTask task = new ReadSrtFileTask(new AsyncCallback() {
+            @Override
+            public void onPreExecute() {
+                //do nothing.
+            }
+
+            @Override
+            public void onPostExecute(TimedTextObject parsedTimedTextObject) {
+                drawSubtitles(parsedTimedTextObject);
+                scrollSubtitle(parsedTimedTextObject);
+            }
+
+            @Override
+            public void onProgressUpdate(int progress) {
+                //do nothing.
+            }
+
+            @Override
+            public void onCancelled() {
+                //do nothing.
+            }
         });
-        task.execute(0);
+        task.setSubtitleFilePath(getSubtitleFilePath());
+        task.setTimedTextObject(timedTextObject);
+        task.execute();
+    }
+
+
+
+    /**
+     * Scroll subtitle to current video position.
+     * Loop trigger has to be drawSubtitles method.
+     */
+    public void scrollSubtitle(final TimedTextObject timedTextObject){
+        if( player != null){
+            final ListView listView = (ListView)findViewById(R.id.subtitles);
+            final ScrollSubtitle scrollSubtitle = new ScrollSubtitle();
+            scrollSubtitle.setTimedTextObject(timedTextObject);
+
+            scrollSubtitleRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    int time = 0;
+                    int nextTime = 0;
+                    if(player.getPlayWhenReady()){
+                        time = (int)player.getCurrentPosition();
+                        while(player.getPlayWhenReady()){
+                            if(timedTextObject.captions.containsKey(time)){
+                                int index = timedTextObject.captions.headMap(time).size();
+                                //listView.smoothScrollToPosition(index);
+                                int height = listView.getHeight();
+                                //listView.setSelectionFromTop(index, height/2);
+                                listView.setItemChecked(index,true);
+                                listView.setSelectionFromTop(index, height/2);
+
+                                nextTime = time;
+                                while(true){
+                                    nextTime++;
+                                    if(timedTextObject.captions.containsKey(nextTime)){
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                            if(time > timedTextObject.captions.lastKey()){
+                                break;
+                            }
+                            time++;
+                        }
+                    }
+                    if(nextTime == 0 || time == 0){
+                        scrollSubtitleHandler.postDelayed(this, 1000);
+                    }else{
+                        scrollSubtitleHandler.postDelayed(this, nextTime - time);
+                    }
+                }
+            };
+            scrollSubtitleHandler.post(scrollSubtitleRunnable);
+
+        }
     }
 
     /**
-     * draw subtitles on View. Callback by ReadSrtFileTask.
-     * @param timedTextObject
+     * draw subtitles on View.
+     * @param timedTextObject subtitles object
      */
     public void drawSubtitles(TimedTextObject timedTextObject){
-        TreeMap<Integer, Caption> captionTreeMap = timedTextObject.captions;
+        captionTreeMap = timedTextObject.captions;
         Iterator<Integer> it = captionTreeMap.keySet().iterator();
         ListView listView = (ListView)findViewById(R.id.subtitles);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
         while (it.hasNext()){
             Integer integer = it.next();
@@ -142,9 +241,6 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
      * @return true if uri is valid and playable. false if uri is null or invalid.
      */
     private boolean playVideoFromFilePath(@NonNull String filePath) {
-        if (filePath == null) {
-            return false;
-        }
         // 1. Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
@@ -167,20 +263,17 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
         mSimpleExoPlayerView.setPlayer(player);
 
         if (prepareExoPlayerFromFilePath(filePath) == false) {
-            Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[playVideoFromFilePath]", Toast.LENGTH_SHORT);
             releasePlayer();
             return false;
         }
 
-        SimpleExoPlayerView playerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
-        playerView.setPlayer(player);
         return true;
     }
 
     /**
      * prepare video file with subtitle if available.
      *
-     * @param filePath
+     * @param filePath video filepath to play
      * @return true if prepare completed. false if prepare is not completed.
      */
     private boolean prepareExoPlayerFromFilePath(@NonNull String filePath) {
@@ -191,6 +284,7 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
             fileDataSource.open(dataSpec);
         } catch (FileDataSource.FileDataSourceException e) {
             e.printStackTrace();
+            Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[playVideoFromFilePath]", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -213,16 +307,24 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
                     Format.createTextSampleFormat(null, MimeTypes.APPLICATION_SUBRIP, Format.NO_VALUE, null), 0);
             MergingMediaSource mergedSource = new MergingMediaSource(videoSource, subtitleSource);
             player.prepare(mergedSource);
-            return true;
         }else{
             ListView listView = (ListView)findViewById(R.id.subtitles);
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
             arrayAdapter.add("Subtitles NOT FOUND.");
             arrayAdapter.add("It should be same file name as video file plus extension.");
             listView.setAdapter(arrayAdapter);
+            player.prepare(videoSource);
         }
-        player.prepare(videoSource);
-        return true;
+
+        //SubtitleView subtitleView = (SubtitleView)findViewById(R.id.exo_subtitles);
+        if(player.getDuration() > Integer.MAX_VALUE){
+            Toast.makeText(this, "The video file is too long. The duration must be less than 500 hours.", Toast.LENGTH_SHORT).show();
+            return false;
+        }else{
+            //play video
+            player.setPlayWhenReady(true);
+            return true;
+        }
     }
 
     /**
@@ -278,12 +380,11 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
         }
-        return;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_WRITE_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
@@ -292,20 +393,19 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT);
+                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
 
                 } else {
-                    Toast.makeText(this, "Permission NOT granted", Toast.LENGTH_SHORT);
+                    Toast.makeText(this, "Permission NOT granted", Toast.LENGTH_SHORT).show();
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     finish();
                 }
-                return;
             }
         }
     }
 
-    /**
+    /**1
      * return video file path from SP.
      * @return video file path or null if nothing.
      */
@@ -332,9 +432,8 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
     }
 
     /**
-     * 字幕ファイルのファイルパスをSPから取得する。
-     *
-     * @return SPに保存した値がなければnullを返す　値があればそのuriを返す。
+     * get subtitles file path from SP.
+     * @return subtitles filePath or null if nothing.
      */
     public String getSubtitleFilePath() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -348,9 +447,8 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
     }
 
     /**
-     * 字幕ファイルのファイルパスをSPに保存する。
-     *
-     * @param mFilePath 動画ファイルのファイルパス
+     * set video file path to SP
+     * @param mFilePath video file
      */
     private void setSubtitleFilePath(String mFilePath) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -360,8 +458,7 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
     }
 
     /**
-     * ビデオの現在の再生時間を保持してたら返す。
-     *
+     * Get duration from SP
      * @return long duration
      */
     public long getVideoDuration() {
@@ -370,9 +467,8 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
     }
 
     /**
-     * ビデオの現在の再生時間を保持する
-     *
-     * @param duration 再生時間
+     * Save duration to SP
+     * @param duration video duration
      */
     public void setVideoDuration(long duration) {
         if (duration >= 0) {
@@ -384,6 +480,7 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
     }
 
     public void lunchFilePicker() {
+        Utility.infoLog("lunchFilePicker()");
         setVideoDuration(0);
         Intent i = new Intent(this, FilteredFilePickerActivity.class);
         // ここで複数ファイル選択できないようにしている？
@@ -403,22 +500,27 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
 //                // Do something with the result...
 //            }
             File file = Utils.getFileForUri(files.get(0));
-            releasePlayer();
 
             if (playVideoFromFilePath(file.toString()) != false) {
                 setVideoFilePath(file.toString());
                 setVideoDuration(0);
             } else {
-                Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT);
+                Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT).show();
                 lunchFilePicker();
             }
         }
     }
 
+    public int getCurrentPosition(){
+        return player.getCurrentPosition() > Integer.MAX_VALUE ? -1 : (int)player.getCurrentPosition();
+    }
+
 
     @Override
     public void onResume() {
+        Utility.infoLog("onResume()");
         super.onResume();
+        //TODO: called initializePlayer() twice at startup.
         if (player == null) {
             initializePlayer();
         }
@@ -440,8 +542,4 @@ public class MainActivity extends AppCompatActivity implements OnTaskCompleted{
         }
     }
 
-    @Override
-    public void onTaskCompleted() {
-
-    }
 }
