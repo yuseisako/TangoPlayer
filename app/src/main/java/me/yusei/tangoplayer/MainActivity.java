@@ -11,22 +11,18 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -52,6 +48,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -63,12 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
     private SimpleExoPlayer player;
-    private SimpleExoPlayerView mSimpleExoPlayerView;
-    private boolean shouldAutoPlay;
+    SimpleExoPlayerView mSimpleExoPlayerView;
+    boolean shouldAutoPlay = true;
     private DefaultTrackSelector trackSelector;
-    private TreeMap<Integer, Caption> captionTreeMap = new TreeMap<>();
-    public int preTime = 0;
-    public boolean isSeekBarMoved = false;
+    MyLinkedMap<Integer, Caption> captionTreeMap = new MyLinkedMap<>();
     private Handler scrollSubtitleHandler = new Handler();
     private Runnable scrollSubtitleRunnable;
 
@@ -99,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializePlayer(){
-        if (getVideoFilePath() == null || playVideoFromFilePath(getVideoFilePath()) == false) {
+        if (getVideoFilePath() == null || !playVideoFromFilePath(getVideoFilePath())) {
             releasePlayer();
             lunchFilePicker();
         }else{
@@ -164,9 +159,6 @@ public class MainActivity extends AppCompatActivity {
     public void scrollSubtitle(final TimedTextObject timedTextObject){
         if( player != null){
             final ListView listView = (ListView)findViewById(R.id.subtitles);
-            final ScrollSubtitle scrollSubtitle = new ScrollSubtitle();
-            scrollSubtitle.setTimedTextObject(timedTextObject);
-
             scrollSubtitleRunnable = new Runnable() {
                 @Override
                 public void run() {
@@ -176,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                         time = (int)player.getCurrentPosition();
                         while(player.getPlayWhenReady()){
                             if(timedTextObject.captions.containsKey(time)){
-                                int index = timedTextObject.captions.headMap(time).size();
+                                int index = timedTextObject.captions.get(time).index;
                                 //listView.smoothScrollToPosition(index);
                                 int height = listView.getHeight();
                                 //listView.setSelectionFromTop(index, height/2);
@@ -193,7 +185,8 @@ public class MainActivity extends AppCompatActivity {
 
                                 break;
                             }
-                            if(time > timedTextObject.captions.lastKey()){
+                            int size = timedTextObject.captions.size();
+                            if(time > timedTextObject.captions.getValue(size - 1 ).end.getMseconds()){
                                 break;
                             }
                             time++;
@@ -215,10 +208,10 @@ public class MainActivity extends AppCompatActivity {
      * draw subtitles on View.
      * @param timedTextObject subtitles object
      */
-    public void drawSubtitles(TimedTextObject timedTextObject){
+    public void drawSubtitles(final TimedTextObject timedTextObject){
         captionTreeMap = timedTextObject.captions;
         Iterator<Integer> it = captionTreeMap.keySet().iterator();
-        ListView listView = (ListView)findViewById(R.id.subtitles);
+        final ListView listView = (ListView)findViewById(R.id.subtitles);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
         while (it.hasNext()){
@@ -231,13 +224,21 @@ public class MainActivity extends AppCompatActivity {
         }
         if(arrayAdapter.getCount() > 0){
             listView.setAdapter(arrayAdapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    Caption caption = timedTextObject.captions.getValue(position);
+                    player.seekTo(caption.start.getMseconds() - 500);
+                    player.setPlayWhenReady(true);
+                }
+            });
         }
     }
 
     /**
      * Play Video From uri and return result
      *
-     * @param filePath
+     * @param filePath filePath for video file.
      * @return true if uri is valid and playable. false if uri is null or invalid.
      */
     private boolean playVideoFromFilePath(@NonNull String filePath) {
@@ -262,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         // Bind the player to the view.
         mSimpleExoPlayerView.setPlayer(player);
 
-        if (prepareExoPlayerFromFilePath(filePath) == false) {
+        if (!prepareExoPlayerFromFilePath(filePath)) {
             releasePlayer();
             return false;
         }
@@ -297,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
 
         MediaSource videoSource = new ExtractorMediaSource(fileDataSource.getUri(),
                 factory, new DefaultExtractorsFactory(), null, null);
-        if (isSubtitleFileExist(filePath) == true) {
+        if (isSubtitleFileExist(filePath)) {
             //call this to read subtitles, this method will callback this activity's "drawSubtitles" method.
             startReadSrtFileTask();
 
@@ -337,17 +338,16 @@ public class MainActivity extends AppCompatActivity {
         //null check
         Utility.nonNull(filePath);
 
-        List<String> subtitleSupportFormatList = new ArrayList<>(Arrays.asList("srt", "vtt", "acc"));
+        List<String> subtitleSupportExtensionList = new ArrayList<>(Arrays.asList("srt", "vtt", "acc"));
         int numExtension = filePath.lastIndexOf(".");
         if (numExtension < 0) {
             return false;
         }
         //Remove extension
         filePath = filePath.substring(0, numExtension + 1);
-        Iterator<String> iterator = subtitleSupportFormatList.iterator();
-        while (iterator.hasNext()) {
+        for(String subtitleSupportExtension : subtitleSupportExtensionList){
             //extension removed filepath + subtitle extension = subtitleFilePath
-            String subtitleFilePath = filePath + iterator.next();
+            String subtitleFilePath = filePath + subtitleSupportExtension;
             File subtitleFile = new File(subtitleFilePath);
             if (subtitleFile.exists()) {
                 //TODO:subtitleFileUri is better?
@@ -501,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
 //            }
             File file = Utils.getFileForUri(files.get(0));
 
-            if (playVideoFromFilePath(file.toString()) != false) {
+            if (playVideoFromFilePath(file.toString())) {
                 setVideoFilePath(file.toString());
                 setVideoDuration(0);
             } else {

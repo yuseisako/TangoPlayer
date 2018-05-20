@@ -6,11 +6,12 @@ package me.yusei.tangoplayer;
 
 public class Caption {
 
-    public Time start;
-    public Time end;
+    int index;
+    Time start;
+    Time end;
 
     /**
      * Cleaned-up subtitle content.
      */
-    public String content="";
+    String content="";
 }

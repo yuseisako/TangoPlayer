@@ -5,6 +5,7 @@ package me.yusei.tangoplayer;
  */
 
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 /**
@@ -46,20 +47,20 @@ public class TimedTextObject {
     public String author = "";
     public String fileName = "";
     public String language = "";
-    public int lastIndex = -1;
+    int lastIndex = -1;
 
     //list of captions (begin time, reference)
     //represented by a tree map to maintain order
-    public TreeMap<Integer, Caption> captions;
+    MyLinkedMap<Integer, Caption> captions;
 
     //to store non fatal errors produced during parsing
-    public String warnings;
+    String warnings;
 
     //to delay or advance the subtitles, parsed into +/- milliseconds
     public int offset = 0;
 
     //to know if a parsing method has been applied
-    public boolean built = false;
+    boolean built = false;
 
 
     /**
@@ -67,7 +68,7 @@ public class TimedTextObject {
      */
     protected TimedTextObject(){
 
-        captions = new TreeMap<>();
+        captions = new MyLinkedMap<>();
 
         warnings = "List of non fatal errors produced during parsing:\n\n";
 

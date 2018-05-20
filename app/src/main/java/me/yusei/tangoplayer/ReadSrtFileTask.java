@@ -46,15 +46,15 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
     private TimedTextObject mTimedTextObject;
     private String mSubtitleFilePath;
 
-    public void setSubtitleFilePath(String subtitleFilePath) {
+    void setSubtitleFilePath(String subtitleFilePath) {
         this.mSubtitleFilePath = subtitleFilePath;
     }
 
-    public ReadSrtFileTask(AsyncCallback asyncCallback){
+    ReadSrtFileTask(AsyncCallback asyncCallback){
         this.asyncCallback = asyncCallback;
     }
 
-    public void setTimedTextObject(TimedTextObject timedTextObject){
+    void setTimedTextObject(TimedTextObject timedTextObject){
         this.mTimedTextObject = timedTextObject;
     }
 
@@ -95,7 +95,7 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
         this.asyncCallback.onProgressUpdate(values[0]);
     }
 
-    public void parseFile() throws IOException {
+    void parseFile() throws IOException {
 
         Caption caption = new Caption();
         int captionNumber = 1;
@@ -106,15 +106,19 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
         //first lets load the file
         File subtitleFile = new File(subtitleFilePath);
         BufferedReader br = null;
+        StringBuffer warningsStringBuffer = new StringBuffer();
+        warningsStringBuffer.append(mTimedTextObject.warnings);
+        int indexCounter = -1;
 
         try {
             br = new BufferedReader(new FileReader(subtitleFile));
             String line = br.readLine();
             line = line.replace("\uFEFF", ""); //remove BOM character
-            int lineCounter = 0;
+            int lineCounter = -1;
             while(line!=null){
                 line = line.trim();
                 lineCounter++;
+                indexCounter++;
                 //if its a blank line, ignore it, otherwise...
                 if (!line.isEmpty()){
                     allGood = false;
@@ -128,8 +132,8 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                             allGood = true;
                         }
                     } catch (Exception e) {
-                        mTimedTextObject.warnings+= captionNumber + " expected at line " + lineCounter;
-                        mTimedTextObject.warnings+= "\n skipping to next line\n\n";
+                        warningsStringBuffer.append(captionNumber + " expected at line " + lineCounter);
+                        warningsStringBuffer.append("\n skipping to next line\n\n");
                     }
                     if (allGood){
                         //we go to next line, here the begin and end time should be found
@@ -138,22 +142,28 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                             line = br.readLine().trim();
                             String start = line.substring(0, 12);
                             String end = line.substring(line.length()-12, line.length());
+                            caption.index = indexCounter;
+
                             Time time = new Time("hh:mm:ss,ms",start);
                             caption.start = time;
                             time = new Time("hh:mm:ss,ms",end);
                             caption.end = time;
                         } catch (Exception e){
-                            mTimedTextObject.warnings += "incorrect time format at line "+lineCounter;
+                            warningsStringBuffer.append("incorrect time format at line "+lineCounter);
                             allGood = false;
                         }
                     }
                     if (allGood){
+                        StringBuffer linesStringBuffer = new StringBuffer();
+                        
                         //we go to next line where the caption text starts
                         lineCounter++;
                         line = br.readLine().trim();
                         String text = "";
                         while (!line.isEmpty()){
-                            text+=line;
+                            linesStringBuffer.append(text);
+                            linesStringBuffer.append(line);
+                            text = linesStringBuffer.toString();
                             line = br.readLine().trim();
                             lineCounter++;
                         }
@@ -162,7 +172,7 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                         //in case the key is already there, we increase it by a millisecond, since no duplicates are allowed
                         while (mTimedTextObject.captions.containsKey(key)) key++;
                         if (key != caption.start.mseconds)
-                            mTimedTextObject.warnings+= "caption with same start time found...\n\n";
+                            warningsStringBuffer.append("caption with same start time found...\n\n");
                         //we add the caption.
                         mTimedTextObject.captions.put(key, caption);
                     }
@@ -176,9 +186,12 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                 line = br.readLine();
             }
 
+
         }  catch (NullPointerException e){
-            mTimedTextObject.warnings+= "unexpected end of file, maybe last caption is not complete.\n\n";
+            warningsStringBuffer.append("unexpected end of file, maybe last caption is not complete.\n\n");
         } finally{
+            mTimedTextObject.warnings = warningsStringBuffer.toString();
+
             //we close the reader
             if(br != null){
                 br.close();
@@ -186,25 +199,4 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
         }
         mTimedTextObject.built = true;
     }
-
-	/* PRIVATE METHODS */
-
-    /**
-     * This method cleans caption.content of XML and parses line breaks.
-     *
-     */
-    private String[] cleanTextForSRT(Caption current) {
-        String[] lines;
-        String text = current.content;
-        //add line breaks
-        lines = text.split("<br />");
-        //clean XML
-        for (int i = 0; i < lines.length; i++){
-            //this will destroy all remaining XML tags
-            lines[i] = lines[i].replaceAll("\\<.*?\\>", "");
-        }
-        return lines;
-    }
-
-
 }
