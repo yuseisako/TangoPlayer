@@ -2,6 +2,8 @@ package me.yusei.tangoplayer;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -13,11 +15,16 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -28,29 +35,23 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
 import com.google.android.exoplayer2.source.SingleSampleMediaSource;
-import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.Util;
 import com.nononsenseapps.filepicker.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
@@ -232,7 +233,48 @@ public class MainActivity extends AppCompatActivity {
                     player.setPlayWhenReady(true);
                 }
             });
+
+            listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id){
+                    Caption caption = timedTextObject.captions.getValue(position);
+                    //Toast.makeText(getApplicationContext(),caption.content,Toast.LENGTH_SHORT).show();
+                    player.setPlayWhenReady(false);
+                    showAnkiDialog(caption.content);
+                    return true;
+                }
+
+            });
         }
+    }
+
+    private void showAnkiDialog(String wordsFront){
+        player.setPlayWhenReady(false);
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        assert inflater != null;
+        final View layout = inflater.inflate(R.layout.show_anki_dialog,
+                (ViewGroup) findViewById(R.id.show_anki_dialog));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add words to Anki");
+        ((TextView)layout.findViewById(R.id.add_text_front)).setText(wordsFront);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                EditText text = (EditText) layout.findViewById(R.id.add_text_back);
+                String addTextBack = text.getText().toString();
+                Toast.makeText(getApplicationContext(), addTextBack, Toast.LENGTH_SHORT).show();
+                player.setPlayWhenReady(true);
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                player.setPlayWhenReady(true);
+            }
+        });
+        builder.setView(layout);
+        builder.create().show();
     }
 
     /**
@@ -321,11 +363,11 @@ public class MainActivity extends AppCompatActivity {
         if(player.getDuration() > Integer.MAX_VALUE){
             Toast.makeText(this, "The video file is too long. The duration must be less than 500 hours.", Toast.LENGTH_SHORT).show();
             return false;
-        }else{
-            //play video
-            player.setPlayWhenReady(true);
-            return true;
         }
+
+        //play video
+        player.setPlayWhenReady(true);
+        return true;
     }
 
     /**
