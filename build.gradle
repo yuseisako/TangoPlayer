@@ -24,3 +24,18 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+//IJKPlayer module
+ext {
+    compileSdkVersion = 25
+    buildToolsVersion = "25.0.3"
+
+    targetSdkVersion = 25
+
+    versionCode = 800800
+    versionName = "0.8.8"
+}
+
+wrapper {
+    gradleVersion = '3.0.0'
+}

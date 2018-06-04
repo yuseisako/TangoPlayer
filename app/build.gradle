@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 27
     buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "me.yusei.tangoplayer"
         minSdkVersion 25
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -21,12 +21,22 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.google.android.exoplayer:exoplayer:r2.5.4'
+//    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+//        exclude group: 'com.android.support', module: 'support-annotations'
+//    })
+    compile 'com.android.support:preference-v7:27.1.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.nononsenseapps:filepicker:4.1.0'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
+    compile 'com.nex3z:flow-layout:1.2.2'
+    compile group: 'org.json', name: 'json', version: '20180130'
+    implementation 'com.ichi2.anki:api:1.1.0alpha6'
     testCompile 'junit:junit:4.12'
+    compile project(path: ':ijkplayer-java')
+    compile project(path: ':ijkplayer-exo')
+    compile project(path: ':ijkplayer-arm64')
+    compile project(path: ':ijkplayer-armv5')
+    compile project(path: ':ijkplayer-armv7a')
+    compile project(path: ':ijkplayer-x86')
+    compile project(path: ':ijkplayer-x86_64')
 }

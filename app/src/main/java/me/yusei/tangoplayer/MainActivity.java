@@ -13,45 +13,39 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.MergingMediaSource;
-import com.google.android.exoplayer2.source.SingleSampleMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer2.upstream.FileDataSource;
-import com.google.android.exoplayer2.util.MimeTypes;
+import com.nex3z.flowlayout.FlowLayout;
 import com.nononsenseapps.filepicker.Utils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import ijk.media.IjkVideoView;
+import ijk.media.VideoControllerView;
+import me.yusei.tangoplayer.anki.AnkiDroidController;
+import me.yusei.tangoplayer.anki.AnkiDroidHelper;
+import me.yusei.tangoplayer.filepicker.FilteredFilePickerActivity;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
@@ -60,34 +54,30 @@ public class MainActivity extends AppCompatActivity {
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
-    private SimpleExoPlayer player;
-    SimpleExoPlayerView mSimpleExoPlayerView;
-    boolean shouldAutoPlay = true;
-    private DefaultTrackSelector trackSelector;
+    private IjkVideoView mVideoView;
+    private VideoControllerView mVideoControllerView;
+
     MyLinkedMap<Integer, Caption> captionTreeMap = new MyLinkedMap<>();
     private Handler scrollSubtitleHandler = new Handler();
-    private Runnable scrollSubtitleRunnable;
+    Runnable scrollSubtitleRunnable;
 
     private static MainActivity instance = null;
+    private boolean mBackPressed;
+    private AnkiDroidHelper mAnkiDroidHelper;
+    private AnkiDroidController mAnkiDroidController;
+    private static final int AD_PERM_REQUEST = 0;
+    //TODO: User can choose skip or not.
+    //private static final String[] WORDS_REPLACE_LIST = {",", "-", "a", "an", "the", "\"" };
+    private static final String[] WORDS_REPLACE_LIST = {",", "-", "." };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ImageButton file = (ImageButton) findViewById(R.id.select_file);
-
-        file.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lunchFilePicker();
-            }
-        });
-
-        //書き込み権限確認
+        mAnkiDroidHelper = new AnkiDroidHelper(this);
+        mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
         checkPermission();
-
         instance = this;
-
     }
 
     public static MainActivity getInstance() {
@@ -97,34 +87,64 @@ public class MainActivity extends AppCompatActivity {
     private void initializePlayer(){
         if (getVideoFilePath() == null || !playVideoFromFilePath(getVideoFilePath())) {
             releasePlayer();
-            lunchFilePicker();
+            launchFilePicker();
         }else{
             // when video file path is invalid or no stored video file path => no seek.
             // otherwise (video file path is valid) => seek video to stored duration.
-            player.seekTo(getVideoDuration());
+            mVideoView.seekTo(getVideoDuration());
         }
     }
 
     private void releasePlayer() {
-        if (player != null) {
-            //release Exoplayer
-            shouldAutoPlay = player.getPlayWhenReady();
-            player.release();
-            setVideoDuration(player.getCurrentPosition());
-            player = null;
-            trackSelector = null;
+        if(mVideoView != null) {
+            int currentPosition = mVideoView.getCurrentPosition();
+            setVideoDuration(currentPosition);
+            mVideoView.stopPlayback();
+            mVideoView.release(true);
+            mVideoView.stopBackgroundPlay();
+            mVideoView.setSubtitleText("");
+            mVideoControllerView.hide();
             //stop scrollSubtitle handler
-            Utility.infoLog("remove Callback");
-            scrollSubtitleHandler.removeCallbacks(scrollSubtitleRunnable);
+
+            scrollSubtitleHandler.removeCallbacksAndMessages(null);
         }
+    }
+
+    private void startTranslateTask(final EditText editTextBack, String word){
+        TranslateTask task = new TranslateTask(new TranslateTaskCallback() {
+            @Override
+            public void onPreExecute() {
+                //TODO:make toast
+            }
+
+            @Override
+            public void onPostExecute(String result) {
+                if(editTextBack != null && result != null && !result.isEmpty()) {
+                    editTextBack.setText(result);
+                }else{
+                    Toast.makeText(getApplicationContext(), "Oops, Checking the translation is failed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onProgressUpdate(int progress) {
+                //do nothing.
+            }
+
+            @Override
+            public void onCancelled() {
+                //do nothing.
+            }
+        });
+
+        task.execute(word);
     }
 
     /**
      * Run background async task: reading srt file, and call back this class.
      */
     private void startReadSrtFileTask(){
-        final TimedTextObject timedTextObject = new TimedTextObject();
-        ReadSrtFileTask task = new ReadSrtFileTask(new AsyncCallback() {
+        ReadSrtFileTask task = new ReadSrtFileTask(new ReadSrtFileTaskCallback() {
             @Override
             public void onPreExecute() {
                 //do nothing.
@@ -147,62 +167,57 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         task.setSubtitleFilePath(getSubtitleFilePath());
-        task.setTimedTextObject(timedTextObject);
-        task.execute();
+        TimedTextObject timedTextObject = new TimedTextObject();
+        task.execute(timedTextObject);
     }
-
-
 
     /**
      * Scroll subtitle to current video position.
      * Loop trigger has to be drawSubtitles method.
      */
     public void scrollSubtitle(final TimedTextObject timedTextObject){
-        if( player != null){
-            final ListView listView = (ListView)findViewById(R.id.subtitles);
-            scrollSubtitleRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    int time = 0;
-                    int nextTime = 0;
-                    if(player.getPlayWhenReady()){
-                        time = (int)player.getCurrentPosition();
-                        while(player.getPlayWhenReady()){
-                            if(timedTextObject.captions.containsKey(time)){
-                                int index = timedTextObject.captions.get(time).index;
-                                //listView.smoothScrollToPosition(index);
-                                int height = listView.getHeight();
-                                //listView.setSelectionFromTop(index, height/2);
-                                listView.setItemChecked(index,true);
-                                listView.setSelectionFromTop(index, height/2);
+        final ListView listView = (ListView)findViewById(R.id.subtitles);
+        int size = timedTextObject.captions.size();
+        final int lastTime = timedTextObject.captions.getValue(size - 1 ).end.getMseconds();
 
-                                nextTime = time;
-                                while(true){
-                                    nextTime++;
-                                    if(timedTextObject.captions.containsKey(nextTime)){
-                                        break;
-                                    }
+        scrollSubtitleRunnable = new Runnable() {
+            @Override
+            public void run() {
+                int time = 0;
+                int nextTime = 0;
+                if(mVideoView != null || mVideoView.isPlaying()){
+                    time = mVideoView.getCurrentPosition();
+                    while(mVideoView.isPlaying() && time <= lastTime){
+                        if(timedTextObject.captions.containsKey(time)){
+                            int index = timedTextObject.captions.get(time).index;
+                            String subtitleContent = timedTextObject.captions.get(time).content;
+                            listView.setItemChecked(index,true);
+                            int height = listView.getHeight();
+                            listView.setSelectionFromTop(index, height/2);
+                            mVideoView.setSubtitleText(subtitleContent);
+                            nextTime = time;
+                            while(true){
+                                nextTime++;
+                                if(timedTextObject.captions.containsKey(nextTime)){
+                                    break;
                                 }
-
-                                break;
+                                if(nextTime > lastTime){
+                                    break;
+                                }
                             }
-                            int size = timedTextObject.captions.size();
-                            if(time > timedTextObject.captions.getValue(size - 1 ).end.getMseconds()){
-                                break;
-                            }
-                            time++;
+                            break;
                         }
-                    }
-                    if(nextTime == 0 || time == 0){
-                        scrollSubtitleHandler.postDelayed(this, 1000);
-                    }else{
-                        scrollSubtitleHandler.postDelayed(this, nextTime - time);
+                        time++;
                     }
                 }
-            };
-            scrollSubtitleHandler.post(scrollSubtitleRunnable);
-
-        }
+                if(nextTime == 0 || time == 0){
+                    scrollSubtitleHandler.postDelayed(this, 1000);
+                }else{
+                    scrollSubtitleHandler.postDelayed(this, nextTime - time);
+                }
+            }
+        };
+        scrollSubtitleHandler.post(scrollSubtitleRunnable);
     }
 
     /**
@@ -228,28 +243,89 @@ public class MainActivity extends AppCompatActivity {
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                    Caption caption = timedTextObject.captions.getValue(position);
-                    player.seekTo(caption.start.getMseconds() - 500);
-                    player.setPlayWhenReady(true);
+                    if(mVideoView !=null) {
+                        Caption caption = timedTextObject.captions.getValue(position);
+                        int captionMiliSec = caption.start.getMseconds();
+                        if( captionMiliSec > 500){
+                            mVideoView.seekTo(captionMiliSec - 500 );
+                        }else{
+                            mVideoView.seekTo(0);
+                        }
+                        mVideoView.setSubtitleText(caption.content);
+                        mVideoView.start();
+                        mVideoControllerView.updatePausePlay();
+                    }
                 }
             });
 
             listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id){
-                    Caption caption = timedTextObject.captions.getValue(position);
-                    //Toast.makeText(getApplicationContext(),caption.content,Toast.LENGTH_SHORT).show();
-                    player.setPlayWhenReady(false);
-                    showAnkiDialog(caption.content);
+                    if(mVideoView !=null) {
+                        Caption caption = timedTextObject.captions.getValue(position);
+                        //Toast.makeText(getApplicationContext(),caption.content,Toast.LENGTH_SHORT).show();
+                        mVideoView.pause();
+                        mVideoControllerView.updatePausePlay();
+                        // Request permission to access API if required
+                        if (mAnkiDroidHelper.shouldRequestPermission()) {
+                            mAnkiDroidHelper.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                            return true;
+                        }
+                        showAnkiDialog(caption.content);
+                    }
                     return true;
                 }
-
             });
         }
     }
 
+    private boolean addWordButton(FlowLayout view, String words, final EditText frontWords){
+        if(view == null || words.isEmpty() || frontWords == null){
+            return false;
+        }
+
+        for(String string: WORDS_REPLACE_LIST){
+            words = words.replace(string, "");
+        }
+
+        String[] splitWords = words.split(" ");
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(10,5,10,5);
+
+        for(String splitWord : splitWords){
+            final TextView word = new TextView(this);
+            word.setText(splitWord);
+            word.setBackground(ContextCompat.getDrawable(this, R.drawable.frame_style));
+            word.setPadding(15, 10, 15, 10);
+            word.setLayoutParams(params);
+            word.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    view.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.frame_style_clicked));
+                    if(word.getText() != null){
+                        String clickedWord = word.getText().toString();
+                        String setWord;
+                        if(frontWords.getText().toString().isEmpty()) {
+                            setWord = clickedWord;
+                        }else{
+                            setWord = frontWords.getText().toString() + " " + clickedWord;
+                        }
+                        frontWords.setText(setWord);
+                    }
+                }
+            });
+            view.addView(word);
+        }
+
+        return true;
+    }
+
     private void showAnkiDialog(String wordsFront){
-        player.setPlayWhenReady(false);
+        if(mVideoView != null){
+            mVideoView.pause();
+            mVideoControllerView.updatePausePlay();
+        }
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         assert inflater != null;
         final View layout = inflater.inflate(R.layout.show_anki_dialog,
@@ -257,24 +333,49 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add words to Anki");
-        ((TextView)layout.findViewById(R.id.add_text_front)).setText(wordsFront);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Add this card", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                EditText text = (EditText) layout.findViewById(R.id.add_text_back);
-                String addTextBack = text.getText().toString();
-                Toast.makeText(getApplicationContext(), addTextBack, Toast.LENGTH_SHORT).show();
-                player.setPlayWhenReady(true);
+                EditText editTextFront = (EditText) layout.findViewById(R.id.add_text_front);
+                String textFront = editTextFront.getText().toString();
+                EditText editTextBack = (EditText) layout.findViewById(R.id.add_text_back);
+                String textBack = editTextBack.getText().toString();
+                // Add all data using AnkiDroid provider
+                //TODO:user can change deckName
+                mAnkiDroidController.addCardsToAnkiDroid("Tango Player", textFront, textBack);
+                if(mVideoView != null){
+                    mVideoView.start();
+                    mVideoControllerView.updatePausePlay();
+                }
             }
         });
-        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
-            public void onCancel(DialogInterface dialog) {
-                player.setPlayWhenReady(true);
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mVideoView.start();
+                mVideoControllerView.updatePausePlay();
             }
         });
+
         builder.setView(layout);
         builder.create().show();
+
+        ImageButton translateButton = layout.findViewById(R.id.translate);
+        translateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText editTextFront = layout.findViewById(R.id.add_text_front);
+                EditText editTextBack = layout.findViewById(R.id.add_text_back);
+                if(editTextFront != null && editTextBack !=null && !editTextFront.getText().toString().isEmpty()){
+                    String sentenceToTranslate = editTextFront.getText().toString();
+                    startTranslateTask(editTextBack, sentenceToTranslate);
+                    Toast.makeText(getApplicationContext(), "checking translation...", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        FlowLayout wordButtons = layout.findViewById(R.id.word_buttons);
+        EditText wordsFrontEditText = layout.findViewById(R.id.add_text_front);
+        addWordButton(wordButtons, wordsFront, wordsFrontEditText);
     }
 
     /**
@@ -284,90 +385,38 @@ public class MainActivity extends AppCompatActivity {
      * @return true if uri is valid and playable. false if uri is null or invalid.
      */
     private boolean playVideoFromFilePath(@NonNull String filePath) {
-        // 1. Create a default TrackSelector
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        TrackSelection.Factory videoTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        trackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+        //init UI
+        //mMediaController = new AndroidMediaController(this, false);
 
-        // 2. Create the player
-        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+        mVideoControllerView = new VideoControllerView(this);
 
-        // 3. Bind the player to the view.
-        mSimpleExoPlayerView = new SimpleExoPlayerView(this);
-        mSimpleExoPlayerView = (SimpleExoPlayerView) findViewById(R.id.playerView);
+        // init player
+        IjkMediaPlayer.loadLibrariesOnce(null);
+        IjkMediaPlayer.native_profileBegin("libijkplayer.so");
 
-        //Set media controller
-        mSimpleExoPlayerView.setUseController(true);
-        mSimpleExoPlayerView.requestFocus();
-        mSimpleExoPlayerView.setControllerShowTimeoutMs(-1);
-        mSimpleExoPlayerView.setControllerHideOnTouch(false);
+        mVideoView = (IjkVideoView) findViewById(R.id.video_view);
+        mVideoView.setMediaController(mVideoControllerView);
+        mVideoView.setVideoPath(filePath);
 
-        // Bind the player to the view.
-        mSimpleExoPlayerView.setPlayer(player);
-
-        if (!prepareExoPlayerFromFilePath(filePath)) {
-            releasePlayer();
-            return false;
+        if (isSubtitleFileExist(filePath)) {
+            startReadSrtFileTask();
+            //startReadDictionaryTask();
+        }else{
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
+            arrayAdapter.add("Subtitles NOT FOUND.");
+            arrayAdapter.add("It should be same file name as video file plus extension.");
         }
+
+        mVideoView.start();
+        mVideoControllerView.showWaitForPlayOnView();
 
         return true;
     }
 
-    /**
-     * prepare video file with subtitle if available.
-     *
-     * @param filePath video filepath to play
-     * @return true if prepare completed. false if prepare is not completed.
-     */
-    private boolean prepareExoPlayerFromFilePath(@NonNull String filePath) {
-        Uri uri = Uri.fromFile(new File(Utility.nonNull(filePath)));
-        DataSpec dataSpec = new DataSpec(uri);
-        final FileDataSource fileDataSource = new FileDataSource();
-        try {
-            fileDataSource.open(dataSpec);
-        } catch (FileDataSource.FileDataSourceException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[playVideoFromFilePath]", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        DataSource.Factory factory = new DataSource.Factory() {
-            @Override
-            public DataSource createDataSource() {
-                return fileDataSource;
-            }
-        };
-
-        MediaSource videoSource = new ExtractorMediaSource(fileDataSource.getUri(),
-                factory, new DefaultExtractorsFactory(), null, null);
-        if (isSubtitleFileExist(filePath)) {
-            //call this to read subtitles, this method will callback this activity's "drawSubtitles" method.
-            startReadSrtFileTask();
-
-            // https://google.github.io/ExoPlayer/doc/reference/com/google/android/exoplayer2/Format.html#sampleMimeType
-            String subtitleFilePath = getSubtitleFilePath();
-            MediaSource subtitleSource = new SingleSampleMediaSource(Uri.fromFile(new File(subtitleFilePath)), factory,
-                    Format.createTextSampleFormat(null, MimeTypes.APPLICATION_SUBRIP, Format.NO_VALUE, null), 0);
-            MergingMediaSource mergedSource = new MergingMediaSource(videoSource, subtitleSource);
-            player.prepare(mergedSource);
-        }else{
-            ListView listView = (ListView)findViewById(R.id.subtitles);
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
-            arrayAdapter.add("Subtitles NOT FOUND.");
-            arrayAdapter.add("It should be same file name as video file plus extension.");
-            listView.setAdapter(arrayAdapter);
-            player.prepare(videoSource);
-        }
-
-        //SubtitleView subtitleView = (SubtitleView)findViewById(R.id.exo_subtitles);
-        if(player.getDuration() > Integer.MAX_VALUE){
-            Toast.makeText(this, "The video file is too long. The duration must be less than 500 hours.", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        //play video
-        player.setPlayWhenReady(true);
-        return true;
+    //TODO:delete
+    public void releaseAndLanchFilePicker(){
+        releasePlayer();
+        launchFilePicker();
     }
 
     /**
@@ -403,8 +452,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        //called this method when resume app
         super.onDestroy();
-        releasePlayer();
+    }
+
+    @Override
+    public void onBackPressed() {
+        mBackPressed = true;
+
+        super.onBackPressed();
     }
 
     private void checkPermission() {
@@ -503,26 +559,25 @@ public class MainActivity extends AppCompatActivity {
      * Get duration from SP
      * @return long duration
      */
-    public long getVideoDuration() {
+    public int getVideoDuration() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return sharedPreferences.getLong(VIDEO_DURATION, 0);
+        return sharedPreferences.getInt(VIDEO_DURATION, 0);
     }
 
     /**
      * Save duration to SP
      * @param duration video duration
      */
-    public void setVideoDuration(long duration) {
+    public void setVideoDuration(int duration) {
         if (duration >= 0) {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putLong(VIDEO_DURATION, duration);
+            editor.putInt(VIDEO_DURATION, duration);
             editor.apply();
         }
     }
 
-    public void lunchFilePicker() {
-        Utility.infoLog("lunchFilePicker()");
+    public void launchFilePicker() {
         setVideoDuration(0);
         Intent i = new Intent(this, FilteredFilePickerActivity.class);
         // ここで複数ファイル選択できないようにしている？
@@ -542,45 +597,39 @@ public class MainActivity extends AppCompatActivity {
 //                // Do something with the result...
 //            }
             File file = Utils.getFileForUri(files.get(0));
+            setVideoDuration(0);
 
             if (playVideoFromFilePath(file.toString())) {
                 setVideoFilePath(file.toString());
-                setVideoDuration(0);
             } else {
                 Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT).show();
-                lunchFilePicker();
+                launchFilePicker();
             }
         }
     }
 
-    public int getCurrentPosition(){
-        return player.getCurrentPosition() > Integer.MAX_VALUE ? -1 : (int)player.getCurrentPosition();
-    }
-
-
     @Override
     public void onResume() {
-        Utility.infoLog("onResume()");
         super.onResume();
-        //TODO: called initializePlayer() twice at startup.
-        if (player == null) {
-            initializePlayer();
-        }
+        initializePlayer();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if(player != null){
-            releasePlayer();
-        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if(player != null){
-            releasePlayer();
+
+        if (mVideoView != null) {
+            if (mBackPressed || !mVideoView.isBackgroundPlayEnabled()) {
+                releasePlayer();
+            } else {
+                mVideoView.enterBackground();
+            }
+            IjkMediaPlayer.native_profileEnd();
         }
     }
 

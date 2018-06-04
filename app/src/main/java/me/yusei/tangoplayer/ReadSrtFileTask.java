@@ -1,16 +1,11 @@
 package me.yusei.tangoplayer;
 
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 /**
  * Original source code:
@@ -42,34 +37,27 @@ import java.io.InputStreamReader;
  */
 public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTextObject> {
 
-    private AsyncCallback asyncCallback = null;
-    private TimedTextObject mTimedTextObject;
+    private ReadSrtFileTaskCallback readSrtFileTaskCallback = null;
     private String mSubtitleFilePath;
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     void setSubtitleFilePath(String subtitleFilePath) {
         this.mSubtitleFilePath = subtitleFilePath;
     }
 
-    ReadSrtFileTask(AsyncCallback asyncCallback){
-        this.asyncCallback = asyncCallback;
-    }
-
-    void setTimedTextObject(TimedTextObject timedTextObject){
-        this.mTimedTextObject = timedTextObject;
-    }
-
-    public TimedTextObject getTimedTextObject(){
-        return mTimedTextObject;
+    ReadSrtFileTask(ReadSrtFileTaskCallback readSrtFileTaskCallback){
+        this.readSrtFileTaskCallback = readSrtFileTaskCallback;
     }
 
     @Override
     protected TimedTextObject doInBackground(TimedTextObject... timedTextObjects) {
-        try{
-            parseFile();
-            return mTimedTextObject;
-        }catch (IOException ioe){
-            mTimedTextObject.warnings += "Caught IOException in parseFile, ReadSrtFileTask";
-            Utility.errorLog("Caught IOException in parseFile()");
+        if(timedTextObjects != null){
+            try{
+                return parseFile(timedTextObjects[0]);
+            }catch (IOException ioe){
+                timedTextObjects[0].warnings += "Caught IOException in parseFile, ReadSrtFileTask";
+                Utility.errorLog("Caught IOException in parseFile()");
+            }
         }
         return null;
     }
@@ -77,14 +65,14 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
     @Override
     protected void onPreExecute(){
         super.onPreExecute();
-        this.asyncCallback.onPreExecute();
-        mTimedTextObject = new TimedTextObject();
+        this.readSrtFileTaskCallback.onPreExecute();
+        //mTimedTextObject = new TimedTextObject();
     }
 
     @Override
-    protected void onPostExecute(TimedTextObject result) {
-        super.onPostExecute(result);
-        this.asyncCallback.onPostExecute(result);
+    protected void onPostExecute(TimedTextObject timedTextObjects) {
+        super.onPostExecute(timedTextObjects);
+        this.readSrtFileTaskCallback.onPostExecute(timedTextObjects);
         //callbacktask.CallBack(mTimedTextObject);
         //listener.onTaskCompleted();
     }
@@ -92,10 +80,10 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
     @Override
     protected void onProgressUpdate(Integer... values){
         super.onProgressUpdate(values);
-        this.asyncCallback.onProgressUpdate(values[0]);
+        this.readSrtFileTaskCallback.onProgressUpdate(values[0]);
     }
 
-    void parseFile() throws IOException {
+    private TimedTextObject parseFile(TimedTextObject mTimedTextObject) throws IOException {
 
         Caption caption = new Caption();
         int captionNumber = 1;
@@ -124,13 +112,18 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                     allGood = false;
                     //the first thing should be an increasing number
                     try {
+                        //some subtitle file start from 1 again in the middle ...
                         int num = Integer.parseInt(line);
-                        if (num != captionNumber)
-                            throw new Exception();
-                        else {
+                        if(num > 0){
                             captionNumber++;
                             allGood = true;
                         }
+//                        if (num != captionNumber)
+//                            throw new Exception();
+//                        else {
+//                            captionNumber++;
+//                            allGood = true;
+//                        }
                     } catch (Exception e) {
                         warningsStringBuffer.append(captionNumber + " expected at line " + lineCounter);
                         warningsStringBuffer.append("\n skipping to next line\n\n");
@@ -155,19 +148,16 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                     }
                     if (allGood){
                         StringBuffer linesStringBuffer = new StringBuffer();
-                        
+
                         //we go to next line where the caption text starts
                         lineCounter++;
                         line = br.readLine().trim();
-                        String text = "";
                         while (!line.isEmpty()){
-                            linesStringBuffer.append(text);
-                            linesStringBuffer.append(line);
-                            text = linesStringBuffer.toString();
+                            linesStringBuffer.append(line + " ");
                             line = br.readLine().trim();
                             lineCounter++;
                         }
-                        caption.content = text;
+                        caption.content = linesStringBuffer.toString();
                         int key = caption.start.mseconds;
                         //in case the key is already there, we increase it by a millisecond, since no duplicates are allowed
                         while (mTimedTextObject.captions.containsKey(key)) key++;
@@ -176,6 +166,7 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
                         //we add the caption.
                         mTimedTextObject.captions.put(key, caption);
                     }
+
                     //we go to next blank
                     while (!line.isEmpty()) {
                         line = br.readLine().trim();
@@ -198,5 +189,6 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
             }
         }
         mTimedTextObject.built = true;
+        return mTimedTextObject;
     }
 }

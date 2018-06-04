@@ -1,11 +1,62 @@
 <resources>
-
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">-->
+        <!--&lt;!&ndash; Customize your theme here. &ndash;&gt;-->
+        <!--<item name="colorPrimary">@color/colorPrimary</item>-->
+        <!--<item name="colorPrimaryDark">@color/colorPrimaryDark</item>-->
+        <!--<item name="colorAccent">@color/colorAccent</item>-->
+    <!--</style>-->
+
+    <style name="Widget.App.ActionButton" parent="@style/Widget.AppCompat.ActionButton">
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="Theme.App.Light.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+
+        <item name="actionButtonStyle">@style/Widget.App.ActionButton</item>
+    </style>
+
+    <style name="Theme.App.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@null</item>
+
+        <item name="actionButtonStyle">@style/Widget.App.ActionButton</item>
+    </style>
+
+    <style name="MediaImageButton">
+        <item name="android:background">@null</item>
+        <item name="android:layout_width">44dip</item>
+        <item name="android:layout_height">34dip</item>
+        <item name="android:paddingLeft">10dip</item>
+        <item name="android:paddingRight">10dip</item>
+        <item name="android:paddingBottom">10dip</item>
+        <item name="android:scaleType">fitXY</item>
+    </style>
+
+    <style name="MediaImageButton.PlayPause">
+        <item name="android:src">@drawable/ic_media_play_pause</item>
+        <item name="android:contentDescription">@string/ImageButton_Pause</item>
+    </style>
+
+    <style name="MediaImageButton.FastForward">
+        <item name="android:src">@drawable/fast_forward_button</item>
+        <item name="android:contentDescription">@string/ImageButton_FastForward</item>
+    </style>
+
+    <style name="MediaImageButton.Rewind">
+        <item name="android:src">@drawable/rewind_button</item>
+        <item name="android:contentDescription">@string/ImageButton_Rewind</item>
+    </style>
+
+    <style name="MediaImageButton.Settings">
+        <item name="android:src">@drawable/settings_button</item>
+        <item name="android:contentDescription">@string/ImageButton_Setting</item>
+    </style>
+
+    <style name="MediaImageButton.Folder">
+        <item name="android:src">@drawable/folder_symbol</item>
+        <item name="android:contentDescription">@string/ImageButton_Folder</item>
     </style>
 
 </resources>

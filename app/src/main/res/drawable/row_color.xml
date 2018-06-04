@@ -2,15 +2,15 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:state_checked="true"
-        android:drawable="@color/subtitleBackgroundColor"
+        android:drawable="@color/subtitleInViewBackgroundColor"
         />
     <item
         android:state_pressed="true"
-        android:drawable="@color/subtitleBackgroundColor"
+        android:drawable="@color/subtitleInViewBackgroundColor"
         />
     <item
         android:state_activated="true"
-        android:drawable="@color/subtitleBackgroundColor"
+        android:drawable="@color/subtitleInViewBackgroundColor"
         />
     <item
         android:state_checked="false"

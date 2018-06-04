@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/show_anki_dialog"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/add_text_full_sentence"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="The words to add into the flashcards." />
+
+    <com.nex3z.flowlayout.FlowLayout
+        android:id="@+id/word_buttons"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:flChildSpacing="0dp"
+        app:flChildSpacingForLastRow="align"
+        app:flRowSpacing="0dp">
+
+    </com.nex3z.flowlayout.FlowLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/add_text_front"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="50dp" />
+
+        <ImageButton
+            android:id="@+id/translate"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/translate"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@string/ImageButton_Translate" />
+
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/add_text_back"
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
+
+</LinearLayout>

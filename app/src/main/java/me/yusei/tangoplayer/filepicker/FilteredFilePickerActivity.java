@@ -1,8 +1,4 @@
-package me.yusei.tangoplayer;
-
-/**
- * Created by profu on 2017/10/01.
- */
+package me.yusei.tangoplayer.filepicker;
 
 import android.os.Environment;
 import android.support.annotation.Nullable;

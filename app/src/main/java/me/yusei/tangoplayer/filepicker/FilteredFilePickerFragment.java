@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.filepicker;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
