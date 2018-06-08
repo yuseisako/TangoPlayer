@@ -7,10 +7,10 @@
     android:padding="10dp" >
 
     <TextView
-        android:id="@+id/add_text_full_sentence"
+        android:id="@+id/add_sentence"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="The words to add into the flashcards." />
+        android:hint="@string/EditText_sentence"/>
 
     <com.nex3z.flowlayout.FlowLayout
         android:id="@+id/word_buttons"
@@ -30,12 +30,13 @@
         android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/add_text_front"
+            android:id="@+id/add_word"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="50dp" />
+            android:layout_marginEnd="50dp"
+            android:hint="@string/EditText_word"/>
 
         <ImageButton
             android:id="@+id/translate"
@@ -49,8 +50,15 @@
     </RelativeLayout>
 
     <EditText
-        android:id="@+id/add_text_back"
+        android:id="@+id/add_word_meaning"
         android:layout_width="match_parent"
-        android:layout_height="50dp" />
+        android:layout_height="50dp"
+        android:hint="@string/EditText_word_meaning"/>
+
+    <EditText
+        android:id="@+id/add_sentence_meaning"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:hint="@string/EditText_sentence_meaning"/>
 
 </LinearLayout>

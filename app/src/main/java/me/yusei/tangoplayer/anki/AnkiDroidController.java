@@ -1,6 +1,7 @@
 package me.yusei.tangoplayer.anki;
 
 import android.content.Context;
+import android.util.SparseBooleanArray;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -19,7 +20,32 @@ public class AnkiDroidController {
     private static final String MODEL_NAME = "tangoplayer";
     private static final Set<String> TAGS = new HashSet<>(Collections.singletonList("TangoPlayer"));
     // List of field names that will be used in AnkiDroid model
-    private static final String[] FIELDS = {"Sentences","Meaning"};
+    public static final String[] FIELDS = {"Word", "Meaning", "Sentence", "SentenceMeaning"};
+    // Template for the question of each card
+    public static final String QFMT1 = "<div class=big>{{Word}}</div><br>{{Sentence}}";
+    public static final String QFMT2 = "{{Meaning}}<br><br><div class=small><br>({{SentenceMeaning}})</div>";
+    public static final String[] QFMT = {QFMT1, QFMT2};
+    // Template for the answer (use identical for both sides)
+    static final String AFMT1 = "{{Meaning}}\n" +
+            "<br><br>\n" +
+            "<a href=\"#\" onclick=\"document.getElementById('hint').style.display='block';return false;\">Sentence Translation</a>\n" +
+            "<div id=\"hint\" style=\"display: none\">{{SentenceMeaning}}</div>\n" +
+            "<br><br>\n" +
+            "<div class=small>{{Tags}}</div>";
+    public static final String[] AFMT = {AFMT1, AFMT1};
+
+    public static final String[] CARD_NAMES = {"Japanese>English", "English>Japanese"};
+    // CSS to share between all the cards (optional). User will need to install the NotoSans font by themselves
+    public static final String CSS = ".card {\n" +
+            " font-size: 24px;\n" +
+            " text-align: center;\n" +
+            " color: black;\n" +
+            " background-color: white;\n" +
+            " word-wrap: break-word;\n" +
+            "}\n" +
+            "\n" +
+            ".big { font-size: 48px; }\n" +
+            ".small { font-size: 18px;}\n";
 
 
     public AnkiDroidController(Context context, AnkiDroidHelper ankiDroidHelper){
@@ -27,15 +53,9 @@ public class AnkiDroidController {
         mAnkiDroid = ankiDroidHelper;
     }
 
-    public boolean addCardsToAnkiDroid(String deckName, String cardFront, String cardBack){
-        List<Map<String, String>> data = new ArrayList<>();
-        Map<String, String> hm = new HashMap<>();
-        hm.put(FIELDS[0], cardFront);
-        hm.put(FIELDS[1], cardBack);
-        data.add(hm);
-
+    public boolean addCardsToAnkiDroid(String deckName, List<Map<String, String>> data){
         long deckId =getDeckId(deckName);
-        long modelId = getModelId();
+        long modelId = getModelId(deckName);
         String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
         // Build list of fields and tags
         LinkedList<String []> fields = new LinkedList<>();
@@ -54,11 +74,10 @@ public class AnkiDroidController {
         }
         // Remove any duplicates from the LinkedLists and then add over the API
         mAnkiDroid.removeDuplicates(fields, tags, modelId);
-        int added = mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags);
-        Toast.makeText(mContext, "card is added", Toast.LENGTH_SHORT).show();
-        if(added != 1){
+        if(mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags) != 1){
             return false;
         }
+        Toast.makeText(mContext, "card is added", Toast.LENGTH_SHORT).show();
         return true;
     }
 
@@ -71,10 +90,11 @@ public class AnkiDroidController {
         return did;
     }
 
-    private long getModelId() {
+    private long getModelId(String deckName) {
         Long mid = mAnkiDroid.findModelIdByName(MODEL_NAME, MODEL_NAME.length());
         if (mid == null) {
-            mid = mAnkiDroid.getApi().addNewBasicModel(MODEL_NAME);
+            mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS,
+                    CARD_NAMES, QFMT, AFMT, CSS, getDeckId(deckName), null);
             mAnkiDroid.storeModelReference(MODEL_NAME, mid);
         }
         return mid;

@@ -1,0 +1,32 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceCategory android:title="AnkiDroid Dialog" >
+        <ListPreference
+            android:title="Translation Language"
+            android:key="@string/key_list_translation_language"
+            android:entries="@array/pref_translation_language"
+            android:entryValues="@array/pref_translation_language_code"
+            android:defaultValue="@string/pref_translation_language_default" />
+        <ListPreference
+            android:title="Deck Name"
+            android:key="@string/key_list_deck_name"
+            android:entries="@array/pref_deck_name"
+            android:entryValues="@array/pref_deck_name_code"
+            android:defaultValue="@string/pref_deck_name_default"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="About">
+        <Preference
+            android:title="Send Feedback"
+            android:key="@string/key_send_feedback"/>
+        <Preference
+            android:title="Open-source Licenses"
+            android:key="@string/key_license"/>
+        <Preference
+            android:title="Developer"
+            android:summary="Yusei Sako"/>
+        <Preference
+            android:title="Version"
+            android:key="@string/key_version"
+            android:summary="1.0"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,6 +1,11 @@
 package me.yusei.tangoplayer;
 
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -9,7 +14,7 @@ import java.net.URLEncoder;
 import org.json.JSONArray;
 
 class Translator {
-    static final int HTTP_CONNECTION_TIME_OUT = 5000;
+    static final int HTTP_CONNECTION_TIME_OUT = 1000;
 
     String callUrlAndParseResult(String langFrom, String langTo, String word) throws Exception {
 

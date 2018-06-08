@@ -18,6 +18,7 @@ package ijk.media;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -35,7 +36,6 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.Formatter;
@@ -43,6 +43,7 @@ import java.util.Locale;
 
 import me.yusei.tangoplayer.MainActivity;
 import me.yusei.tangoplayer.R;
+import me.yusei.tangoplayer.SettingsActivity;
 
 /**
  * A view containing controls for a MediaPlayer. Typically contains the
@@ -669,7 +670,9 @@ public class VideoControllerView extends FrameLayout implements IMediaController
 
     private View.OnClickListener mSettingListener = new View.OnClickListener() {
         public void onClick(View v) {
-            Toast.makeText(getContext(), "settingbutton clicked", Toast.LENGTH_SHORT).show();
+            mPlayer.pause();
+            Intent intent = new Intent(mContext, SettingsActivity.class);
+            mContext.startActivity(intent);
         }
     };
 

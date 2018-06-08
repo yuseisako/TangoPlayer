@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.android.support:support-v4:27.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
 //        exclude group: 'com.android.support', module: 'support-annotations'
@@ -29,7 +30,9 @@ dependencies {
     compile 'com.nononsenseapps:filepicker:4.1.0'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     compile 'com.nex3z:flow-layout:1.2.2'
+    compile('de.psdev.licensesdialog:licensesdialog:1.8.3')
     compile group: 'org.json', name: 'json', version: '20180130'
+    compile 'com.webianks.library:easy-feedback:1.0.2'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'
     testCompile 'junit:junit:4.12'
     compile project(path: ':ijkplayer-java')

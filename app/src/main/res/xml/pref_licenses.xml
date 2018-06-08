@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/pref_licenses">
+    <Preference android:title="@string/flowlayout"
+        android:key="@string/flowlayout"/>
+    <Preference android:title="@string/material_design_icon"
+        android:key="@string/material_design_icon"/>
+    <Preference android:title="@string/android_support_library"
+        android:key="@string/android_support_library"/>
+    <Preference android:title="@string/android_constraint_layout"
+        android:key="@string/android_constraint_layout"/>
+    <Preference android:title="@string/nononsense_filepicker"
+        android:key="@string/nononsense_filepicker"/>
+    <Preference android:title="@string/juniversalchardet"
+        android:key="@string/juniversalchardet"/>
+    <Preference android:title="@string/licenses_dialog"
+        android:key="@string/licenses_dialog"/>
+    <Preference android:title="@string/json_in_java"
+        android:key="@string/json_in_java"/>
+    <Preference android:title="@string/ankidroid_api"
+        android:key="@string/ankidroid_api"/>
+    <Preference android:title="@string/ijkplayer"
+        android:key="@string/ijkplayer"/>
+    <Preference android:title="@string/easyfeedback"
+        android:key="@string/easyfeedback"/>
+</PreferenceScreen>
