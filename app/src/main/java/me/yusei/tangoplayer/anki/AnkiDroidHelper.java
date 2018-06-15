@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.SparseArray;
@@ -133,7 +134,7 @@ public class AnkiDroidHelper {
      * @param numFields the minimum number of fields the model is required to have
      * @return the model ID
      */
-    public Long findModelIdByName(String modelName, int numFields) {
+    public Long findModelIdByName(@NonNull String modelName, int numFields) {
         SharedPreferences modelsDb = mContext.getSharedPreferences(MODEL_REF_DB, Context.MODE_PRIVATE);
         long prefsModelId = modelsDb.getLong(modelName, -1L);
         // if we have a reference saved to modelName and it exists and has at least numFields then return it
@@ -161,7 +162,7 @@ public class AnkiDroidHelper {
      * @param deckName the name of the deck to find
      * @return the did of the deck in Anki
      */
-    public Long findDeckIdByName(String deckName) {
+    public Long findDeckIdByName(@NonNull String deckName) throws IllegalStateException{
         SharedPreferences decksDb = mContext.getSharedPreferences(DECK_REF_DB, Context.MODE_PRIVATE);
         // Look for deckName in the deck list
         Long did = getDeckId(deckName);
@@ -185,7 +186,7 @@ public class AnkiDroidHelper {
      * @param deckName Exact name of deck (note: deck names are unique in Anki)
      * @return the ID of the deck that has given name, or null if no deck was found
      */
-    private Long getDeckId(String deckName) {
+    private Long getDeckId(@NonNull String deckName) throws IllegalStateException {
         Map<Long, String> deckList = mApi.getDeckList();
         for (Map.Entry<Long, String> entry : deckList.entrySet()) {
             if (entry.getValue().equalsIgnoreCase(deckName)) {

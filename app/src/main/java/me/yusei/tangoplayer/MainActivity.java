@@ -1,7 +1,6 @@
 package me.yusei.tangoplayer;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -20,7 +19,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,8 +38,8 @@ import com.nononsenseapps.filepicker.Utils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -55,24 +53,20 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 public class MainActivity extends AppCompatActivity {
     //    public class MainActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK = 2;
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     private static final int FILE_CODE = 1;
     private IjkVideoView mVideoView;
     private VideoControllerView mVideoControllerView;
-
-    MyLinkedMap<Integer, Caption> captionTreeMap = new MyLinkedMap<>();
     private Handler scrollSubtitleHandler = new Handler();
+    private TimedTextObject timedTextObject = new TimedTextObject();
     Runnable scrollSubtitleRunnable;
-
     private static MainActivity instance = null;
     private boolean mBackPressed;
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
-    private static final int AD_PERM_REQUEST = 0;
-    //TODO: User can choose skip or not.
-    //private static final String[] WORDS_REPLACE_LIST = {",", "-", "a", "an", "the", "\"" };
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
 
     @Override
@@ -81,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAnkiDroidHelper = new AnkiDroidHelper(this);
         mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
-        checkPermission();
+        checkWriteExternalStoragePermission();
         instance = this;
     }
 
@@ -175,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         task.setSubtitleFilePath(getSubtitleFilePath());
-        TimedTextObject timedTextObject = new TimedTextObject();
         task.execute(timedTextObject);
     }
 
@@ -185,68 +178,65 @@ public class MainActivity extends AppCompatActivity {
      */
     public void scrollSubtitle(final TimedTextObject timedTextObject){
         final ListView listView = findViewById(R.id.subtitles);
-        int size = timedTextObject.captions.size();
-        final int lastTime = timedTextObject.captions.getValue(size - 1 ).end.getMseconds();
+  //      int size = timedTextObject.captions.size();
+ //       final int lastTime = timedTextObject.captions.getValue(size - 1 ).end.getMseconds();
 
         scrollSubtitleRunnable = new Runnable() {
+            List<Caption> subtitles = new ArrayList<>(timedTextObject.captions.values());
+
             @Override
             public void run() {
-                int currentVideoTime = 0;
-                int nextTime = 0;
-                //TODO: fix delay
-                if(mVideoView != null || mVideoView.isPlaying()){
-                    currentVideoTime = mVideoView.getCurrentPosition();
+                if(mVideoView != null && mVideoView.isPlaying()){
+                    int currentPos = mVideoView.getCurrentPosition();
+                    int index = 0;
 
-                    while(mVideoView.isPlaying() && currentVideoTime <= lastTime){
-                        if(timedTextObject.captions.containsKey(currentVideoTime)){
-                            int index = timedTextObject.captions.get(currentVideoTime).index;
-                            String subtitleContent = timedTextObject.captions.get(currentVideoTime).content;
+                    for (Caption caption : subtitles) {
+                        if (currentPos >= caption.start.mseconds
+                                && currentPos <= caption.end.mseconds) {
                             listView.setItemChecked(index,true);
                             int height = listView.getHeight();
                             listView.setSelectionFromTop(index, height/2);
-                            mVideoView.setSubtitleText(subtitleContent);
-                            nextTime = currentVideoTime;
-                            while(true){
-                                nextTime++;
-                                if(timedTextObject.captions.containsKey(nextTime)){
-                                    break;
-                                }
-                                if(nextTime > lastTime){
-                                    break;
-                                }
-                            }
+                            onTimedText(caption);
                             break;
+                        } else {
+                            onTimedText(null);
+                            if(currentPos < caption.end.mseconds){
+                                break;
+                            }
                         }
-                        currentVideoTime++;
+                        index++;
                     }
                 }
-                if(nextTime == 0 || currentVideoTime == 0){
-                    scrollSubtitleHandler.postDelayed(this, 1000);
-                }else{
-                    scrollSubtitleHandler.postDelayed(this, nextTime - currentVideoTime - 10);
-                }
+
+                scrollSubtitleHandler.postDelayed(this, 500);
             }
         };
         scrollSubtitleHandler.post(scrollSubtitleRunnable);
     }
 
+
+    public void onTimedText(Caption caption) {
+        if (caption == null) {
+            mVideoView.setSubtitleVisibility(View.INVISIBLE);
+            return;
+        }
+        mVideoView.setSubtitleText(caption.content);
+        mVideoView.setSubtitleVisibility(View.VISIBLE);
+    }
     /**
      * draw subtitles on View.
      * @param timedTextObject subtitles object
      */
-    public void drawSubtitles(final TimedTextObject timedTextObject){
-        captionTreeMap = timedTextObject.captions;
-        Iterator<Integer> it = captionTreeMap.keySet().iterator();
+    public void drawSubtitles(TimedTextObject timedTextObject){
         final ListView listView = findViewById(R.id.subtitles);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
-        while (it.hasNext()){
-            Integer integer = it.next();
-            Caption caption = captionTreeMap.get(integer);
-            String content = caption.content;
-            //TODO Replace below to treemap custom adapter if this need more flexibility.
-            //https://stackoverflow.com/questions/18532850/treemap-to-listview-in-android
-            arrayAdapter.add(content);
+        Collection<Caption> subtitles = timedTextObject.captions.values();
+        final ArrayList<Integer> startTimeList = new ArrayList<>();
+        for (Caption caption : subtitles) {
+            arrayAdapter.add(caption.content);
+            startTimeList.add(caption.start.mseconds);
         }
         if(arrayAdapter.getCount() > 0){
             listView.setAdapter(arrayAdapter);
@@ -254,16 +244,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                     if(mVideoView !=null) {
-                        Caption caption = timedTextObject.captions.getValue(position);
-                        Toast.makeText(getApplicationContext(), caption.content + " (" + caption.start + ")", Toast.LENGTH_SHORT).show();
-                        int captionMiliSec = caption.start.getMseconds();
-                        if( captionMiliSec > 500){
-                            mVideoView.seekTo(captionMiliSec);
-                        }else{
-                            mVideoView.seekTo(0);
+                        int captionMiliSec = startTimeList.get(position);
+                        mVideoView.seekTo(captionMiliSec);
+                        if(!mVideoView.isPlaying()){
+                            mVideoView.start();
                         }
-                        mVideoView.setSubtitleText(caption.content);
-                        mVideoView.start();
                         mVideoControllerView.updatePausePlay();
                     }
                 }
@@ -273,16 +258,15 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id){
                     if(mVideoView !=null) {
-                        Caption caption = timedTextObject.captions.getValue(position);
-                        //Toast.makeText(getApplicationContext(),caption.content,Toast.LENGTH_SHORT).show();
+                        String content = (String) listView.getItemAtPosition(position);
                         mVideoView.pause();
                         mVideoControllerView.updatePausePlay();
                         // Request permission to access API if required
                         if (mAnkiDroidHelper.shouldRequestPermission()) {
-                            mAnkiDroidHelper.requestPermission(MainActivity.this, AD_PERM_REQUEST);
+                            mAnkiDroidHelper.requestPermission(MainActivity.this, MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK);
                             return true;
                         }
-                        showAnkiDialog(caption.content);
+                        showAnkiDialog(content);
                     }
                     return true;
                 }
@@ -426,10 +410,9 @@ public class MainActivity extends AppCompatActivity {
                     if(!word.isEmpty()){
                         startTranslateTask(editTextWordMeaning, word);
                         startTranslateTask(editTextSentenceMeaning, sentence);
-                        Toast.makeText(getApplicationContext(), "checking translation...", Toast.LENGTH_SHORT).show();
                     }
                 }else {
-                    Toast.makeText(getApplicationContext(), "no network ...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.warning_msg_no_network), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -531,7 +514,7 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    private void checkPermission() {
+    private void checkWriteExternalStoragePermission() {
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             // need to get permission
             if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
@@ -554,19 +537,22 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_WRITE_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
-
-                } else {
-                    Toast.makeText(this, "Permission NOT granted", Toast.LENGTH_SHORT).show();
+                if (grantResults.length < 0
+                        || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, getResources().getString(R.string.error_msg_no_write_storage_permission), Toast.LENGTH_LONG).show();
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     finish();
                 }
+            }
+            case MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK: {
+                if(grantResults.length <= 0
+                        || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, getResources().getString(R.string.error_msg_no_write_anki_db_permission), Toast.LENGTH_LONG).show();
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+
             }
         }
     }
@@ -676,7 +662,7 @@ public class MainActivity extends AppCompatActivity {
             if (playVideoFromFilePath(file.toString())) {
                 setVideoFilePath(file.toString());
             } else {
-                Toast.makeText(this, "VideoFilePath is invalid. Chose Video file again.[onActivityResult]", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.error_invalid_video_file), Toast.LENGTH_SHORT).show();
                 launchFilePicker();
             }
         }

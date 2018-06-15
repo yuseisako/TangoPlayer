@@ -1,7 +1,16 @@
 <resources>
     <string name="app_name">Tango Player</string>
-    <string name="select_file">Select file</string>
-    <string name="exo_video_surface_description">Video surface</string>
+    <!--Error Message-->
+    <string name="error_msg_no_acccess_to_anki_db">No Access to AnkiDroid DB. Check AnkiDroid is allow to access the storage.</string>
+    <string name="error_msg_no_write_storage_permission">The permission to access your storage was NOT granted. Please tap [ALLOW].</string>
+    <string name="error_msg_no_write_anki_db_permission">The permission to access your AnkiDroid DB was NOT granted. Please tap [ALLOW].</string>
+    <string name="error_invalid_video_file">The Video file path is invalid. Choose another video file again.</string>
+
+    <!--Warning Message-->
+    <string name="warning_msg_no_network">No Network. Put the translation manually.</string>
+
+    <!--Information Message-->
+    <string name="info_msg_anki_card_is_added">The card was added.</string>
 
     <!--ijkplayer-->
     <string name="N_A">N/A</string>

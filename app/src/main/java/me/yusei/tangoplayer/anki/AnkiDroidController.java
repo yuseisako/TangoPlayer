@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import me.yusei.tangoplayer.R;
+
 public class AnkiDroidController {
     //AnkiDroid API
     private AnkiDroidHelper mAnkiDroid;
@@ -46,6 +48,7 @@ public class AnkiDroidController {
             "\n" +
             ".big { font-size: 48px; }\n" +
             ".small { font-size: 18px;}\n";
+    public static final long ANKI_DROID_ILLIGAL_STATE_ERROR = -1;
 
 
     public AnkiDroidController(Context context, AnkiDroidHelper ankiDroidHelper){
@@ -55,6 +58,11 @@ public class AnkiDroidController {
 
     public boolean addCardsToAnkiDroid(String deckName, List<Map<String, String>> data){
         long deckId =getDeckId(deckName);
+        if(deckId == ANKI_DROID_ILLIGAL_STATE_ERROR){
+            //Avoid crash cause by AnkiDroid doesn't have permission of read/write the storage,
+            Toast.makeText(mContext, mContext.getResources().getText(R.string.error_msg_no_acccess_to_anki_db), Toast.LENGTH_SHORT).show();
+            return false;
+        }
         long modelId = getModelId(deckName);
         String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
         // Build list of fields and tags
@@ -77,12 +85,19 @@ public class AnkiDroidController {
         if(mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags) != 1){
             return false;
         }
-        Toast.makeText(mContext, "card is added", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, mContext.getResources().getString(R.string.info_msg_anki_card_is_added), Toast.LENGTH_SHORT).show();
         return true;
     }
 
-    private long getDeckId(String deckName) {
-        Long did = mAnkiDroid.findDeckIdByName(deckName);
+    private long getDeckId(String deckName){
+        Long did;
+
+        try{
+            did = mAnkiDroid.findDeckIdByName(deckName);
+        }catch (IllegalStateException ise){
+            return ANKI_DROID_ILLIGAL_STATE_ERROR;
+        }
+
         if (did == null) {
             did = mAnkiDroid.getApi().addNewDeck(deckName);
             mAnkiDroid.storeDeckReference(deckName, did);
@@ -91,7 +106,14 @@ public class AnkiDroidController {
     }
 
     private long getModelId(String deckName) {
-        Long mid = mAnkiDroid.findModelIdByName(MODEL_NAME, MODEL_NAME.length());
+        Long mid;
+
+        try{
+            mid = mAnkiDroid.findModelIdByName(MODEL_NAME, MODEL_NAME.length());
+        }catch (IllegalStateException ise){
+            return ANKI_DROID_ILLIGAL_STATE_ERROR;
+        }
+
         if (mid == null) {
             mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS,
                     CARD_NAMES, QFMT, AFMT, CSS, getDeckId(deckName), null);

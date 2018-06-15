@@ -18,6 +18,7 @@
 package ijk.media;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -32,14 +33,17 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.preference.AndroidResources;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +55,7 @@ import java.util.Map;
 import ijk.Settings;
 import ijk.services.MediaPlayerService;
 import me.yusei.tangoplayer.R;
+import me.yusei.tangoplayer.Utility;
 import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 import tv.danmaku.ijk.media.player.AndroidMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
@@ -124,6 +129,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     private long mSeekEndTime = 0;
 
     private TextView subtitleDisplay;
+    private ImageView playImage;
+
+    boolean firstTouch = false;
+    long lastTouchTime = 0;
 
     public IjkVideoView(Context context) {
         super(context);
@@ -172,17 +181,28 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         subtitleDisplay = new TextView(context);
         subtitleDisplay.setTextSize(18);
         subtitleDisplay.setGravity(Gravity.CENTER);
-        subtitleDisplay.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.subtitleInVideoBackgroundColor));
-        subtitleDisplay.setTextColor(ContextCompat.getColor(getContext(), R.color.subtitleInVideoColor));
+        subtitleDisplay.setShadowLayer(0, 3, 3, ContextCompat.getColor(getContext(), R.color.subtitleInVideoShadowColor));
+        subtitleDisplay.setTextColor(ContextCompat.getColor(getContext(), R.color.subtitleInVideoTextColor));
         LayoutParams layoutParams_txt = new LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT,
                 Gravity.BOTTOM);
         addView(subtitleDisplay, layoutParams_txt);
-    }
 
+//        playImage = new ImageView(context);
+//        playImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_icon, null));
+//        LayoutParams layoutParamsImageButton = new LayoutParams(
+//                LayoutParams.MATCH_PARENT,
+//                LayoutParams.WRAP_CONTENT,
+//                Gravity.CENTER);
+//        addView(playImage, layoutParamsImageButton);
+    }
     public void setSubtitleText(String subtitleText){
         subtitleDisplay.setText(subtitleText);
+    }
+
+    public void setSubtitleVisibility(int visibility){
+        subtitleDisplay.setVisibility(visibility);
     }
 
     public void setRenderView(IRenderView renderView) {
@@ -733,6 +753,32 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public boolean onTouchEvent(MotionEvent ev) {
         if (isInPlaybackState() && mMediaController != null) {
             //toggleMediaControlsVisiblity();
+            int x = (int)ev.getX();
+            if(mVideoWidth/3 > x || mVideoWidth/3*2 < x){
+                if(ev.getAction() == ev.ACTION_DOWN){
+                    if(firstTouch && (System.currentTimeMillis() - lastTouchTime) <= 300) {
+                        firstTouch = false;
+                        if(mVideoWidth/3 > x){
+                            if(mMediaPlayer.getCurrentPosition() - 5000 > 0){
+                                mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() - 5000);
+                            }
+                        }else{
+                            if(mMediaPlayer.getDuration() > (mMediaPlayer.getCurrentPosition() + 5000)){
+                                mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 5000);
+                            }
+                        }
+                    }else {
+                        firstTouch = true;
+                        lastTouchTime = System.currentTimeMillis();
+                    }
+                }
+            }else{
+                if(mMediaPlayer.isPlaying()){
+                    mMediaPlayer.pause();
+                }else{
+                    mMediaPlayer.start();
+                }
+            }
         }
         return false;
     }
@@ -855,7 +901,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         //remove mMediaPlayer.isPlaying() because it takes time to reflect correct boolean.
         //return isInPlaybackState() && mMediaPlayer.isPlaying();
         return isInPlaybackState() && (mCurrentState == STATE_PLAYING);
-        }
+    }
 
     @Override
     public int getBufferPercentage() {
@@ -1034,6 +1080,12 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 if (mUri != null) {
                     ijkMediaPlayer = new IjkMediaPlayer();
                     ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
+                    //Added
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1);
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "nobuffer");
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1);
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "max_delay", 0);
 
                     if (mSettings.getUsingMediaCodec()) {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);

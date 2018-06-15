@@ -4,8 +4,10 @@ import android.os.AsyncTask;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Original source code:
@@ -50,13 +52,44 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
     }
 
     @Override
-    protected TimedTextObject doInBackground(TimedTextObject... timedTextObjects) {
-        if(timedTextObjects != null){
+    protected TimedTextObject doInBackground(TimedTextObject... tto) {
+        if(tto != null){
             try{
-                return parseFile(timedTextObjects[0]);
+                if(mSubtitleFilePath != null && !mSubtitleFilePath.isEmpty()){
+                    int i = mSubtitleFilePath.lastIndexOf('.');
+                    if (i > 0) {
+                        String extension = mSubtitleFilePath.substring(i+1);
+                        File subtitleFile = new File(mSubtitleFilePath);
+                        InputStream subtitleInputStream = new FileInputStream(subtitleFile);
+                        switch (extension) {
+                            case "srt":
+                                FormatSRT formatSRT = new FormatSRT();
+                                return formatSRT.parseFile(mSubtitleFilePath, subtitleInputStream);
+                            case "ass":
+                                FormatASS formatASS = new FormatASS();
+                                return formatASS.parseFile(mSubtitleFilePath, subtitleInputStream);
+                            case "scc":
+                                FormatSCC formatSCC = new FormatSCC();
+                                return formatSCC.parseFile(mSubtitleFilePath, subtitleInputStream);
+                            case "stl":
+                                FormatSTL formatSTL = new FormatSTL();
+                                return formatSTL.parseFile(mSubtitleFilePath, subtitleInputStream);
+                            case "ttml":
+                                FormatTTML formatTTML = new FormatTTML();
+                                return formatTTML.parseFile(mSubtitleFilePath, subtitleInputStream);
+                        }
+
+                    }
+
+                }
             }catch (IOException ioe){
-                timedTextObjects[0].warnings += "Caught IOException in parseFile, ReadSrtFileTask";
+                tto[0].warnings += "Caught IOException in parseFile, ReadSrtFileTask";
                 Utility.errorLog("Caught IOException in parseFile()");
+                ioe.printStackTrace();
+            }catch (FatalParsingException fpe) {
+                tto[0].warnings += "Caught FatalParsingException in parseFile, ReadSrtFileTask";
+                Utility.errorLog("Caught IOException in parseFile()");
+                fpe.printStackTrace();
             }
         }
         return null;
@@ -66,7 +99,6 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
     protected void onPreExecute(){
         super.onPreExecute();
         this.readSrtFileTaskCallback.onPreExecute();
-        //mTimedTextObject = new TimedTextObject();
     }
 
     @Override
@@ -83,112 +115,4 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
         this.readSrtFileTaskCallback.onProgressUpdate(values[0]);
     }
 
-    private TimedTextObject parseFile(TimedTextObject mTimedTextObject) throws IOException {
-
-        Caption caption = new Caption();
-        int captionNumber = 1;
-        boolean allGood;
-
-        String subtitleFilePath = Utility.nonNull(mSubtitleFilePath);
-
-        //first lets load the file
-        File subtitleFile = new File(subtitleFilePath);
-        BufferedReader br = null;
-        StringBuffer warningsStringBuffer = new StringBuffer();
-        warningsStringBuffer.append(mTimedTextObject.warnings);
-        int indexCounter = -1;
-
-        try {
-            br = new BufferedReader(new FileReader(subtitleFile));
-            String line = br.readLine();
-            line = line.replace("\uFEFF", ""); //remove BOM character
-            int lineCounter = -1;
-            while(line!=null){
-                line = line.trim();
-                lineCounter++;
-                indexCounter++;
-                //if its a blank line, ignore it, otherwise...
-                if (!line.isEmpty()){
-                    allGood = false;
-                    //the first thing should be an increasing number
-                    try {
-                        //some subtitle file start from 1 again in the middle ...
-                        int num = Integer.parseInt(line);
-                        if(num > 0){
-                            captionNumber++;
-                            allGood = true;
-                        }
-//                        if (num != captionNumber)
-//                            throw new Exception();
-//                        else {
-//                            captionNumber++;
-//                            allGood = true;
-//                        }
-                    } catch (Exception e) {
-                        warningsStringBuffer.append(captionNumber + " expected at line " + lineCounter);
-                        warningsStringBuffer.append("\n skipping to next line\n\n");
-                    }
-                    if (allGood){
-                        //we go to next line, here the begin and end time should be found
-                        try {
-                            lineCounter++;
-                            line = br.readLine().trim();
-                            String start = line.substring(0, 12);
-                            String end = line.substring(line.length()-12, line.length());
-                            caption.index = indexCounter;
-
-                            Time time = new Time("hh:mm:ss,ms",start);
-                            caption.start = time;
-                            time = new Time("hh:mm:ss,ms",end);
-                            caption.end = time;
-                        } catch (Exception e){
-                            warningsStringBuffer.append("incorrect time format at line "+lineCounter);
-                            allGood = false;
-                        }
-                    }
-                    if (allGood){
-                        StringBuffer linesStringBuffer = new StringBuffer();
-
-                        //we go to next line where the caption text starts
-                        lineCounter++;
-                        line = br.readLine().trim();
-                        while (!line.isEmpty()){
-                            linesStringBuffer.append(line + " ");
-                            line = br.readLine().trim();
-                            lineCounter++;
-                        }
-                        caption.content = linesStringBuffer.toString();
-                        int key = caption.start.mseconds;
-                        //in case the key is already there, we increase it by a millisecond, since no duplicates are allowed
-                        while (mTimedTextObject.captions.containsKey(key)) key++;
-                        if (key != caption.start.mseconds)
-                            warningsStringBuffer.append("caption with same start time found...\n\n");
-                        //we add the caption.
-                        mTimedTextObject.captions.put(key, caption);
-                    }
-
-                    //we go to next blank
-                    while (!line.isEmpty()) {
-                        line = br.readLine().trim();
-                        lineCounter++;
-                    }
-                    caption = new Caption();
-                }
-                line = br.readLine();
-            }
-
-
-        }  catch (NullPointerException e){
-            warningsStringBuffer.append("unexpected end of file, maybe last caption is not complete.\n\n");
-        } finally{
-            mTimedTextObject.warnings = warningsStringBuffer.toString();
-
-            //we close the reader
-            if(br != null){
-                br.close();
-            }
-        }
-        mTimedTextObject.built = true;
-        return mTimedTextObject;
-    }
 }

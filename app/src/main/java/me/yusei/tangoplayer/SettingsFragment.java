@@ -192,8 +192,6 @@ public class SettingsFragment extends PreferenceFragment {
                 case LICENSE_CC3:
                     notices.addNotice(new Notice(name, url, copyright, new CreativeCommonsAttribution30Unported()));
                     break;
-                default:
-                    break;
             }
             new LicensesDialog.Builder(getContext()).setNotices(notices).build().show();
 

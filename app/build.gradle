@@ -5,7 +5,7 @@ android {
     buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "me.yusei.tangoplayer"
-        minSdkVersion 25
+        minSdkVersion 23
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -18,6 +18,12 @@ android {
         }
     }
 }
+
+//configurations {
+//    all {
+//        exclude group: 'org.json', module: 'json'
+//    }
+//}
 
 dependencies {
     implementation 'com.android.support:support-v4:27.+'

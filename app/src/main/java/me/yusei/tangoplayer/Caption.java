@@ -1,17 +1,13 @@
 package me.yusei.tangoplayer;
 
-/**
- * Created by yuseisako on 2017/11/11.
- */
-
 public class Caption {
 
-    int index;
-    Time start;
-    Time end;
+    public Style style;
+    public Region region;
 
-    /**
-     * Cleaned-up subtitle content.
-     */
-    String content="";
+    public Time start;
+    public Time end;
+
+    public String content="";
+
 }
