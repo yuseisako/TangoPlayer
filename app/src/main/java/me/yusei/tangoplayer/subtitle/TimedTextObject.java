@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.subtitle;
 
 
 import java.util.Hashtable;
@@ -68,10 +68,7 @@ public class TimedTextObject {
     public boolean built = false;
 
 
-    /**
-     * Protected constructor so it can't be created from outside
-     */
-    protected TimedTextObject(){
+    public TimedTextObject(){
 
         styling = new Hashtable<String, Style>();
         layout = new Hashtable<String, Region>();

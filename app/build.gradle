@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion "26.0.2"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "me.yusei.tangoplayer"
         minSdkVersion 23
@@ -19,6 +19,10 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 //configurations {
 //    all {
 //        exclude group: 'org.json', module: 'json'
@@ -26,26 +30,20 @@ android {
 //}
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.+'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-//    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-//        exclude group: 'com.android.support', module: 'support-annotations'
-//    })
+    implementation "com.android.support:support-v4:27.0.0"
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    //        exclude group: 'com.android.support', module: 'support-annotations'
+    //    })
     compile 'com.android.support:preference-v7:27.1.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.nononsenseapps:filepicker:4.1.0'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     compile 'com.nex3z:flow-layout:1.2.2'
-    compile('de.psdev.licensesdialog:licensesdialog:1.8.3')
-    compile group: 'org.json', name: 'json', version: '20180130'
+    compile 'de.psdev.licensesdialog:licensesdialog:1.8.3'
+    compile 'org.json:json:20180130'
     compile 'com.webianks.library:easy-feedback:1.0.2'
+    compile 'de.mrmaffen:vlc-android-sdk:3.0.0'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'
     testCompile 'junit:junit:4.12'
-    compile project(path: ':ijkplayer-java')
-    compile project(path: ':ijkplayer-exo')
-    compile project(path: ':ijkplayer-arm64')
-    compile project(path: ':ijkplayer-armv5')
-    compile project(path: ':ijkplayer-armv7a')
-    compile project(path: ':ijkplayer-x86')
-    compile project(path: ':ijkplayer-x86_64')
 }

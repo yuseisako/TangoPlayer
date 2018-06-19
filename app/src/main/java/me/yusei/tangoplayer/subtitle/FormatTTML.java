@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.subtitle;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;

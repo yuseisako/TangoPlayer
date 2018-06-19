@@ -29,8 +29,8 @@
         <ImageButton android:id="@+id/setting"
             style="@style/MediaImageButton.Settings"/>
 
-        <ImageButton android:id="@+id/prev"
-            style="@android:style/MediaButton.Previous" />
+        <!--<ImageButton android:id="@+id/prev"-->
+            <!--style="@android:style/MediaButton.Previous" />-->
 
         <ImageButton android:id="@+id/rew"
             style="@style/MediaImageButton.Rewind" />
@@ -40,7 +40,7 @@
             <!--android:contentDescription="Pause" />-->
 
         <ImageButton android:id="@+id/playpause"
-            style="@style/MediaImageButton.PlayPause" />
+            style="@style/MediaImageButton.Play" />
 
         <!--<ImageButton android:id="@+id/ffwd"-->
             <!--style="@android:style/MediaButton.Ffwd"-->
@@ -49,8 +49,8 @@
         <ImageButton android:id="@+id/ffwd"
             style="@style/MediaImageButton.FastForward"/>
 
-        <ImageButton android:id="@+id/next"
-            style="@android:style/MediaButton.Next" />
+        <!--<ImageButton android:id="@+id/next"-->
+            <!--style="@android:style/MediaButton.Next" />-->
 
         <ImageButton android:id="@+id/file"
             style="@style/MediaImageButton.Folder"  />

@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.subtitle;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="subtitleInViewBackgroundColor">#FFFF80F9</color>
-    <color name="subtitleInVideoShadowColor">#FF000000</color>
-    <color name="subtitleInVideoTextColor">#FFFFFFFF</color>
+    <color name="colorPrimary">#8BBCFF</color>
+    <color name="colorPrimaryDark">#398BFC</color>
+    <color name="colorAccent">#FF80AB</color>
+    <color name="subtitleInViewBackgroundColor">#FFB2CC</color>
+    <color name="subtitleInVideoShadowColor">#000000</color>
+    <color name="subtitleInVideoTextColor">#FFFFFF</color>
 
 </resources>

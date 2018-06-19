@@ -1,13 +1,20 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.task;
 
 import android.os.AsyncTask;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+
+import me.yusei.tangoplayer.Utility;
+import me.yusei.tangoplayer.subtitle.FatalParsingException;
+import me.yusei.tangoplayer.subtitle.FormatASS;
+import me.yusei.tangoplayer.subtitle.FormatSCC;
+import me.yusei.tangoplayer.subtitle.FormatSRT;
+import me.yusei.tangoplayer.subtitle.FormatSTL;
+import me.yusei.tangoplayer.subtitle.FormatTTML;
+import me.yusei.tangoplayer.subtitle.TimedTextObject;
 
 /**
  * Original source code:
@@ -37,17 +44,16 @@ import java.io.InputStream;
  * @author J. David Requejo
  *
  */
-public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTextObject> {
+public class ReadSubtitleFileTask extends AsyncTask<TimedTextObject, Integer, TimedTextObject> {
 
-    private ReadSrtFileTaskCallback readSrtFileTaskCallback = null;
+    private ReadSubtitleFileTaskCallback readSrtFileTaskCallback = null;
     private String mSubtitleFilePath;
-    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-    void setSubtitleFilePath(String subtitleFilePath) {
+    public void setSubtitleFilePath(String subtitleFilePath) {
         this.mSubtitleFilePath = subtitleFilePath;
     }
 
-    ReadSrtFileTask(ReadSrtFileTaskCallback readSrtFileTaskCallback){
+    public ReadSubtitleFileTask(ReadSubtitleFileTaskCallback readSrtFileTaskCallback){
         this.readSrtFileTaskCallback = readSrtFileTaskCallback;
     }
 
@@ -83,11 +89,11 @@ public class ReadSrtFileTask extends AsyncTask<TimedTextObject, Integer, TimedTe
 
                 }
             }catch (IOException ioe){
-                tto[0].warnings += "Caught IOException in parseFile, ReadSrtFileTask";
+                tto[0].warnings += "Caught IOException in parseFile, ReadSubtitleFileTask";
                 Utility.errorLog("Caught IOException in parseFile()");
                 ioe.printStackTrace();
             }catch (FatalParsingException fpe) {
-                tto[0].warnings += "Caught FatalParsingException in parseFile, ReadSrtFileTask";
+                tto[0].warnings += "Caught FatalParsingException in parseFile, ReadSubtitleFileTask";
                 Utility.errorLog("Caught IOException in parseFile()");
                 fpe.printStackTrace();
             }

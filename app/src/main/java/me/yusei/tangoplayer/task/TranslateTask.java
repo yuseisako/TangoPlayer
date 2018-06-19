@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.task;
 
 import android.os.AsyncTask;
 

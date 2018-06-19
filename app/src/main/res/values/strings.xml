@@ -83,7 +83,6 @@
     <!--Media Player ImageButton-->
     <string name="ImageButton_Play">Play video</string>
     <string name="ImageButton_Pause">Pause video</string>
-    <string name="ImageButton_PlayPause">Play/Pause video</string>
     <string name="ImageButton_Rewind">Rewind video</string>
     <string name="ImageButton_FastForward">Fast forward video</string>
     <string name="ImageButton_Previous">Previous forward video</string>
@@ -335,6 +334,7 @@
     <!-- License -->
     <string name="pref_licenses">Licenses</string>
     <string name="flowlayout">FlowLayout</string>
+    <string name="subtitle_converter">Subtitle Converter</string>
     <string name="material_design_icon">Material Design (icon)</string>
     <string name="android_support_library">Android Support Library</string>
     <string name="android_constraint_layout">Android ConstraintLayout</string>
@@ -343,6 +343,6 @@
     <string name="licenses_dialog">LicensesDialog</string>
     <string name="json_in_java">JSON In Java</string>
     <string name="ankidroid_api">AnkiDroid API</string>
-    <string name="ijkplayer">ijkplayer</string>
+    <string name="lib_vlc">libVLC</string>
     <string name="easyfeedback">EasyFeedback</string>
 </resources>

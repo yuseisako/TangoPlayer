@@ -40,10 +40,32 @@ public class Utility {
      * @param text
      * https://qiita.com/niusounds/items/ec34dfcdb6eed448dc87
      */
+    public static void warnLog(String text) {
+        StackTraceElement elem = Thread.currentThread().getStackTrace()[2];
+        String tag = elem.getFileName();
+        Log.w(tag, text);
+    }
+
+    /**
+     * Logger
+     * @param text
+     * https://qiita.com/niusounds/items/ec34dfcdb6eed448dc87
+     */
     public static void infoLog(String text) {
         StackTraceElement elem = Thread.currentThread().getStackTrace()[2];
         String tag = elem.getFileName();
         Log.i(tag, text);
+    }
+
+    /**
+     * Logger
+     * @param text
+     * https://qiita.com/niusounds/items/ec34dfcdb6eed448dc87
+     */
+    public static void debugLog(String text) {
+        StackTraceElement elem = Thread.currentThread().getStackTrace()[2];
+        String tag = elem.getFileName();
+        Log.d(tag, text);
     }
 
 }

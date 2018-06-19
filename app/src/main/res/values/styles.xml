@@ -34,8 +34,13 @@
         <item name="android:scaleType">fitXY</item>
     </style>
 
-    <style name="MediaImageButton.PlayPause">
-        <item name="android:src">@drawable/ic_media_play_pause</item>
+    <style name="MediaImageButton.Play">
+        <item name="android:src">@drawable/ic_media_play</item>
+        <item name="android:contentDescription">@string/ImageButton_Play</item>
+    </style>
+
+    <style name="MediaImageButton.Pause">
+        <item name="android:src">@drawable/ic_media_pause</item>
         <item name="android:contentDescription">@string/ImageButton_Pause</item>
     </style>
 

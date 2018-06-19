@@ -3,5 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/subtitlesCol"
+    android:textSize="@dimen/subtitleListViewTextSize"
     android:background="@drawable/row_color">
 </TextView>

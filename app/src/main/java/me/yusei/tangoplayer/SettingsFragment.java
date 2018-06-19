@@ -5,15 +5,20 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.webianks.easy_feedback.EasyFeedback;
 
 import de.psdev.licensesdialog.LicensesDialog;
-import de.psdev.licensesdialog.licenses.*;
+import de.psdev.licensesdialog.licenses.ApacheSoftwareLicense20;
+import de.psdev.licensesdialog.licenses.CreativeCommonsAttribution30Unported;
+import de.psdev.licensesdialog.licenses.GnuGeneralPublicLicense20;
+import de.psdev.licensesdialog.licenses.GnuGeneralPublicLicense30;
+import de.psdev.licensesdialog.licenses.GnuLesserGeneralPublicLicense21;
+import de.psdev.licensesdialog.licenses.MITLicense;
+import de.psdev.licensesdialog.licenses.MozillaPublicLicense11;
+import de.psdev.licensesdialog.licenses.MozillaPublicLicense20;
 import de.psdev.licensesdialog.model.Notice;
 import de.psdev.licensesdialog.model.Notices;
 
@@ -27,6 +32,8 @@ public class SettingsFragment extends PreferenceFragment {
     public static final int LICENSE_GNU3 = 4;
     public static final int LICENSE_LGPL21 = 5;
     public static final int LICENSE_CC3 = 6;
+    public static final int LICENSE_GPL20 = 7;
+    public static final int LICENSE_MIT = 8;
 
     public SettingsFragment() {
         // Required empty public constructor
@@ -51,8 +58,9 @@ public class SettingsFragment extends PreferenceFragment {
         Preference.OnPreferenceClickListener sendFeedbackListener = new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
+                String email = "profical" + "[at]" + "gmai.com";
                 new EasyFeedback.Builder(getContext())
-                        .withEmail("profical@gmail.com")
+                        .withEmail(email)
                         .withSystemInfo()
                         .build()
                         .start();
@@ -121,6 +129,10 @@ public class SettingsFragment extends PreferenceFragment {
                 showLicense(getResources().getString(R.string.flowlayout),
                         "https://github.com/nex3z/FlowLayout",
                         "Copyright 2016 nex3z", LICENSE_APACHE2);
+            }else if(title.compareTo(getResources().getString(R.string.subtitle_converter)) == 0){
+                    showLicense(getResources().getString(R.string.subtitle_converter),
+                            "https://github.com/JDaren/subtitleConverter",
+                            "Copyrigt (c) 2012 J. David REQUEJO", LICENSE_MIT);
             }else if(title.compareTo(getResources().getString(R.string.material_design_icon)) == 0){
                 showLicense(getResources().getString(R.string.material_design_icon),
                         "http://www.google.com",
@@ -152,10 +164,10 @@ public class SettingsFragment extends PreferenceFragment {
                 showLicense(getResources().getString(R.string.ankidroid_api),
                         "https://github.com/ankidroid/Anki-Android",
                         "Copyright (C) 2007 Free Software Foundation, Inc.", LICENSE_GNU3);
-            }else if(title.compareTo(getResources().getString(R.string.ijkplayer)) == 0){
-                showLicense(getResources().getString(R.string.ijkplayer),
-                        "https://github.com/Bilibili/ijkplayer",
-                        "Copyright (c) 2017 Bilibili", LICENSE_LGPL21);
+            }else if(title.compareTo(getResources().getString(R.string.lib_vlc)) == 0){
+                showLicense(getResources().getString(R.string.lib_vlc),
+                        "https://github.com/videolan/vlc-android",
+                        "Copyright (c) 2018 VideoLAN", LICENSE_GPL20);
             }else if(title.compareTo(getResources().getString(R.string.easyfeedback))==0){
                 showLicense(getResources().getString(R.string.easyfeedback),
                         "https://github.com/webianks/EasyFeedback",
@@ -166,13 +178,16 @@ public class SettingsFragment extends PreferenceFragment {
         }
 
         private void showLicense(String name, String url, String copyright, int licenseType){
-            if(name==null || url==null || copyright==null || LICENSE_CC3 < licenseType || LICENSE_APACHE2 > licenseType){
+            if(name==null || url==null || copyright==null){
                 return;
             }
             Notices notices = new Notices();
             switch (licenseType){
                 case LICENSE_APACHE2:
                     notices.addNotice(new Notice(name, url, copyright, new ApacheSoftwareLicense20()));
+                    break;
+                case LICENSE_MIT:
+                    notices.addNotice(new Notice(name, url, copyright, new MITLicense()));
                     break;
                 case LICENSE_MOZILLA11:
                     notices.addNotice(new Notice(name, url, copyright, new MozillaPublicLicense11()));
@@ -191,6 +206,9 @@ public class SettingsFragment extends PreferenceFragment {
                     break;
                 case LICENSE_CC3:
                     notices.addNotice(new Notice(name, url, copyright, new CreativeCommonsAttribution30Unported()));
+                    break;
+                case LICENSE_GPL20:
+                    notices.addNotice(new Notice(name, url, copyright, new GnuGeneralPublicLicense20()));
                     break;
             }
             new LicensesDialog.Builder(getContext()).setNotices(notices).build().show();

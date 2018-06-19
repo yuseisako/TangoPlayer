@@ -1,4 +1,4 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.task;
 
 /**
  * Created by yuseisako on 2017/11/13.

@@ -1,12 +1,12 @@
-package me.yusei.tangoplayer;
+package me.yusei.tangoplayer.task;
 
-import me.yusei.tangoplayer.TimedTextObject;
+import me.yusei.tangoplayer.subtitle.TimedTextObject;
 
 /**
  * Created by yuseisako on 2017/11/13.
  */
 
-public interface ReadSrtFileTaskCallback {
+public interface ReadSubtitleFileTaskCallback {
 
     void onPreExecute();
     void onPostExecute(TimedTextObject timedTextObject);

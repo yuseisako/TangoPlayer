@@ -4,13 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/TangoPlayer.iml" filepath="$PROJECT_DIR$/.idea/modules/TangoPlayer.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-arm64/ijkplayer-arm64.iml" filepath="$PROJECT_DIR$/ijkplayer-arm64/ijkplayer-arm64.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-armv5/ijkplayer-armv5.iml" filepath="$PROJECT_DIR$/ijkplayer-armv5/ijkplayer-armv5.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-armv7a/ijkplayer-armv7a.iml" filepath="$PROJECT_DIR$/ijkplayer-armv7a/ijkplayer-armv7a.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-exo/ijkplayer-exo.iml" filepath="$PROJECT_DIR$/ijkplayer-exo/ijkplayer-exo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-java/ijkplayer-java.iml" filepath="$PROJECT_DIR$/ijkplayer-java/ijkplayer-java.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-x86/ijkplayer-x86.iml" filepath="$PROJECT_DIR$/ijkplayer-x86/ijkplayer-x86.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ijkplayer-x86_64/ijkplayer-x86_64.iml" filepath="$PROJECT_DIR$/ijkplayer-x86_64/ijkplayer-x86_64.iml" />
     </modules>
   </component>
 </project>

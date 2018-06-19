@@ -2,6 +2,8 @@
     android:title="@string/pref_licenses">
     <Preference android:title="@string/flowlayout"
         android:key="@string/flowlayout"/>
+    <Preference android:title="@string/subtitle_converter"
+        android:key="@string/subtitle_converter"/>
     <Preference android:title="@string/material_design_icon"
         android:key="@string/material_design_icon"/>
     <Preference android:title="@string/android_support_library"
@@ -18,8 +20,8 @@
         android:key="@string/json_in_java"/>
     <Preference android:title="@string/ankidroid_api"
         android:key="@string/ankidroid_api"/>
-    <Preference android:title="@string/ijkplayer"
-        android:key="@string/ijkplayer"/>
+    <Preference android:title="@string/lib_vlc"
+        android:key="@string/lib_vlc"/>
     <Preference android:title="@string/easyfeedback"
         android:key="@string/easyfeedback"/>
 </PreferenceScreen>
