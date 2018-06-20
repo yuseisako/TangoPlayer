@@ -1,14 +1,11 @@
 package me.yusei.tangoplayer;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -59,9 +56,7 @@ import me.yusei.tangoplayer.task.TranslateTask;
 import me.yusei.tangoplayer.task.TranslateTaskCallback;
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback , LibVLC.HardwareAccelerationError{
-    //    public class VideoPlayerActivity extends AppCompatActivity  implements Runnable, View.OnClickListener, MediaPlayer.OnTimedTextListener {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK = 2;
-    private static final int FILE_CODE = 1;
     private static final int CONTROL_DURATION = 5000;
     //display surface
     private SurfaceHolder mSurfaceHolder;
@@ -77,30 +72,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private TextView subtitleTextView;
 
     //Overlay Video Controller
-    private ImageButton settingButton;
-    private ImageButton rewindButton;
-    private ImageButton playPauseButton;
-    private ImageButton fastForwardButton;
-    private ImageButton fileButton;
-    private TextView timeCurrentTextView;
-    private SeekBar progressSeekBar;
-    private TextView timeTotalTextView;
-    private boolean mDisplayRemainingTime = false;
-    private boolean mDragging;
+    ImageButton settingButton;
+    ImageButton rewindButton;
+    ImageButton playPauseButton;
+    ImageButton fastForwardButton;
+    ImageButton fileButton;
+    TextView timeCurrentTextView;
+    SeekBar progressSeekBar;
+    TextView timeTotalTextView;
+    boolean mDisplayRemainingTime = false;
+    boolean mDragging;
 
 
     private TimedTextObject timedTextObject = new TimedTextObject();
     Runnable scrollSubtitleRunnable;
-    private static VideoPlayerActivity instance = null;
     private boolean mBackPressed;
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
-    private String videoFilePath;
-
-    public static VideoPlayerActivity getInstance() {
-        return instance;
-    }
 
     /* ===============================================================
        Application Lifecycle
@@ -110,17 +99,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
-        instance = this;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        //TODO what happen when call getExtra() twice? return null?
         // Receive path to play from intent
         Intent intent = getIntent();
-        videoFilePath = intent.getExtras().getString(VideoPlayerConfig.LOCATION);
+        //String videoFilePath = intent.getExtras().getString(VideoPlayerConfig.LOCATION);
+        String videoFilePath = intent.getStringExtra(VideoPlayerConfig.LOCATION);
         if(videoFilePath == null){
             videoFilePath = VideoPlayerConfig.getVideoFilePath(this);
         }
@@ -261,7 +248,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         });
 
         playPauseButton = findViewById(R.id.playpause);
-        updatePausePlay();
         playPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -298,7 +284,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         subtitleTextView = findViewById(R.id.subtitleTextView);
     }
 
-    public void updatePausePlay() {
+    private void updatePausePlay() {
         if (playPauseButton == null || mMediaPlayer == null) {
             return;
         }
@@ -310,6 +296,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             playPauseButton.setImageResource(R.drawable.ic_media_pause);
             mMediaPlayer.play();
         }
+    }
+
+    private void updatePlay(){
+        if (playPauseButton == null || mMediaPlayer == null || mMediaPlayer.isPlaying()) {
+            return;
+        }
+
+        playPauseButton.setImageResource(R.drawable.ic_media_pause);
+        mMediaPlayer.play();
+    }
+
+    private void updatePause(){
+        if (playPauseButton == null || mMediaPlayer == null) {
+            return;
+        }
+
+        playPauseButton.setImageResource(R.drawable.ic_media_play);
+        mMediaPlayer.pause();
     }
 
     /**
@@ -402,7 +406,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     setOverlayProgress();
                 }
 
-                scrollSubtitleHandler.postDelayed(this, 500);
+                scrollSubtitleHandler.postDelayed(this, 300);
             }
         };
         scrollSubtitleHandler.post(scrollSubtitleRunnable);
@@ -444,8 +448,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         mMediaPlayer.setTime(captionMiliSec);
                         if(!mMediaPlayer.isPlaying()){
                             mMediaPlayer.play();
+                            playPauseButton.setImageResource(R.drawable.ic_media_pause);
                         }
-                        updatePausePlay();
                     }
                 }
             });
@@ -455,10 +459,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id){
                     if(mMediaPlayer !=null) {
                         String content = (String) listView.getItemAtPosition(position);
-                        if(mMediaPlayer.isPlaying()){
-                            mMediaPlayer.pause();
-                        }
-                        updatePausePlay();
+                        updatePause();
                         // Request permission to access API if required
                         if (mAnkiDroidHelper.shouldRequestPermission()) {
                             mAnkiDroidHelper.requestPermission(VideoPlayerActivity.this, MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK);
@@ -477,13 +478,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      ============================ */
 
     private void showAnkiDialog(@NonNull  String sentence){
-        if(mSurfaceView != null){
-            mMediaPlayer.pause();
-            //TODO
-            //mMediaController.updatePausePlay();
-        }
         if(sentence.isEmpty()){
             return;
+        }
+        if(mMediaPlayer.isPlaying()){
+            updatePause();
         }
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         assert inflater != null;
@@ -502,7 +501,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
                 if(!word.isEmpty() && !wordMeaning.isEmpty()) {
                     // Add all data using AnkiDroid provider
-                    //TODO:user can change deckName
                     List<Map<String, String>> cardContentsList = new ArrayList<>();
                     Map<String, String> cardContents = new HashMap<>();
                     cardContents.put(AnkiDroidController.FIELDS[0], word);
@@ -523,19 +521,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     }
                     mAnkiDroidController.addCardsToAnkiDroid(deckName, cardContentsList);
                 }
-                if(mSurfaceView != null){
-                    mMediaPlayer.play();
-                    //TODO
-                    //mMediaController.updatePausePlay();
-                }
+                updatePlay();
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                mMediaPlayer.play();
-                //TODO
-                //mMediaController.updatePausePlay();
+                updatePlay();
             }
         });
 
@@ -546,7 +538,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         translateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(checkNetwork()){
                     String word  = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
                     EditText editTextWordMeaning = layout.findViewById(R.id.add_word_meaning);
 
@@ -557,9 +548,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         startTranslateTask(editTextWordMeaning, word);
                         startTranslateTask(editTextSentenceMeaning, sentence);
                     }
-                }else {
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.warning_msg_no_network), Toast.LENGTH_SHORT).show();
-                }
             }
         });
         TextView sentenceTextView = layout.findViewById(R.id.add_sentence);
@@ -570,15 +558,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         addWordButton(wordButtons, sentence, wordsFrontEditText);
     }
 
-    private boolean checkNetwork() {
-        ConnectivityManager internetManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = internetManager.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected() && networkInfo.isAvailable() && networkInfo.isConnectedOrConnecting());
-    }
-
-    private boolean addWordButton(FlowLayout view, String words, final EditText frontWords){
+    private void addWordButton(FlowLayout view, String words, final EditText frontWords){
         if(view == null || words.isEmpty() || frontWords == null){
-            return false;
+            return;
         }
 
         for(String string: WORDS_REPLACE_LIST){
@@ -603,6 +585,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 public void onClick(View view) {
                     if(word.getText() != null){
                         String clickedWord = word.getText().toString();
+                        view.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.frame_style_clicked));
+
                         String setWord;
                         if(frontWords.getText().toString().isEmpty()) {
                             setWord = clickedWord;
@@ -613,27 +597,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     }
                 }
             });
-
-
-            word.setOnTouchListener(new View.OnTouchListener(){
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    switch (motionEvent.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            view.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.frame_style_clicked));
-                            return true;
-                        case MotionEvent.ACTION_UP:
-                            view.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.frame_style));
-                            view.performClick();
-                            return true;
-                    }
-                    return false;
-                }
-            });
             view.addView(word);
         }
-
-        return true;
     }
 
 
@@ -719,7 +684,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             isSeek = true;
         }
 
-        if(createPlayer("file://" + filePath, isSeek)){
+        if(createPlayer(filePath, isSeek)){
             VideoPlayerConfig.setVideoFilePath(this, filePath);
         }else {
             return false;
@@ -738,41 +703,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         return true;
     }
 
-//    private void createSubtitleView(){
-//        subtitleDisplay = new TextView(this);
-//        subtitleDisplay.setTextSize(18);
-//        subtitleDisplay.setGravity(Gravity.CENTER);
-//        subtitleDisplay.setShadowLayer(1, 1, 1, getColor(R.color.subtitleInVideoShadowColor))
-//        subtitleDisplay.setTextColor(getColor(R.color.subtitleInVideoTextColor));
-//        LayoutParams layoutParams_txt = new LayoutParams(
-//                LayoutParams.MATCH_PARENT,
-//                LayoutParams.WRAP_CONTENT,
-//                Gravity.BOTTOM);
-//
-//    }
-
-//    private void initPlayer(){
-//        if (VideoPlayerConfig.getVideoFilePath(this) == null || !initPlayer(VideoPlayerConfig.getVideoFilePath(this))) {
-//            releasePlayer();
-//            launchFilePicker();
-//        }
-////
-////        else{
-////            // when video file path is invalid or no stored video file path => no seek.
-////            // otherwise (video file path is valid) => seek video to stored duration.
-////            mMediaPlayer.setTime(VideoPlayerConfig.getVideoPosition(this,));
-////        }
-//    }
-
     private Boolean createPlayer(String media, Boolean isSeek) {
         releasePlayer();
         try {
             // Create LibVLC
-            // TODO: make this more robust, and sync with audio demo
-            ArrayList<String> options = new ArrayList<String>();
+            ArrayList<String> options = new ArrayList<>();
             //options.add("--subsdec-encoding <encoding>");
             options.add("--aout=opensles");
             options.add("--audio-time-stretch"); // time stretching
+            options.add("--no-spu"); //no subtitle by LibVLC
             options.add("-vvv"); // verbosity
 //            options.add("--http-reconnect");
 //            options.add("--network-caching="+6*1000);
@@ -787,19 +726,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             // Set up video output
             final IVLCVout vout = mMediaPlayer.getVLCVout();
             vout.setVideoView(mSurfaceView);
-//            if(mSubtitlesSurface != null){
-//                vout.setSubtitlesView(mSubtitlesSurface);
-//            }
+            if(mSubtitlesSurface != null){
+                vout.setSubtitlesView(mSubtitlesSurface);
+            }
             vout.addCallback(this);
             vout.attachViews();
 
             mSurfaceView = findViewById(R.id.video_view);
 
-            Media m = new Media(libvlc, Uri.parse(media));
+            Media m = new Media(libvlc, Uri.parse("file://" + media));
+            m.setHWDecoderEnabled(true, false);
             mMediaPlayer.setMedia(m);
-            //TODO settime not working
 
             mMediaPlayer.play();
+            if(playPauseButton != null){
+                playPauseButton.setImageResource(R.drawable.ic_media_pause);
+            }
+
             if(isSeek){
                 //While return -1 from getTime(), you cannot seek video. It happen only right after load media.
                 final Handler handler = new Handler();
@@ -834,19 +777,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         updatePausePlay();
                     }
                 }
+                if(event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    view.performClick();
+                }
                 return true;
             }
         });
         return true;
     }
 
-    // TODO: handle this cleaner
     private void releasePlayer() {
         if (libvlc == null){
             return;
         }
         long currentPosition = mMediaPlayer.getTime();
         VideoPlayerConfig.setVideoPosition(this, currentPosition);
+        onTimedText(null);
 
         mMediaPlayer.stop();
         final IVLCVout vout = mMediaPlayer.getVLCVout();
@@ -855,13 +801,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSurfaceHolder = null;
         libvlc.release();
         libvlc = null;
-
-
-        //TODO
-//            mSurfaceView.release(true);
-//            mSurfaceView.stopBackgroundPlay();
-//            mSurfaceView.setSubtitleText("");
-//            mMediaController.hide();
         //stop scrollSubtitle handler
         scrollSubtitleHandler.removeCallbacksAndMessages(null);
     }
@@ -888,9 +827,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             String subtitleFilePath = filePath + subtitleSupportExtension;
             File subtitleFile = new File(subtitleFilePath);
             if (subtitleFile.exists()) {
-                //TODO:subtitleFileUri is better?
                 VideoPlayerConfig.setSubtitleFilePath(this, subtitleFilePath);
-                //start reading srt file async task
                 return true;
             }
         }
@@ -952,7 +889,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         private WeakReference<VideoPlayerActivity> mOwner;
 
         MyPlayerListener(VideoPlayerActivity owner) {
-            mOwner = new WeakReference<VideoPlayerActivity>(owner);
+            mOwner = new WeakReference<>(owner);
         }
 
         @Override
