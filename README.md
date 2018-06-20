@@ -21,4 +21,4 @@ Of course you need to write the back side.
 # Under consideration.
 - Auto download subtitle.
 
-![Screeenshot](/screenshot1.png) ![Screeenshot](/screenshot2.png)
+![Screeenshot](/screenshot.png)
