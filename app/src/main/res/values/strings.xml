@@ -89,6 +89,8 @@
     <string name="ImageButton_Next">Next video</string>
     <string name="ImageButton_Setting">Setting</string>
     <string name="ImageButton_Folder">Choose another video</string>
+    <string name="ImageButton_SubtitleFastForward">Subtitle fast forward</string>
+    <string name="ImageButton_SubtitleRewind">Subtitle rewind</string>
 
     <!--AnkiDialog-->
     <string name="ImageButton_Translate">Translate</string>

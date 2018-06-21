@@ -57,7 +57,10 @@ import me.yusei.tangoplayer.task.TranslateTaskCallback;
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback , LibVLC.HardwareAccelerationError{
     private static final int MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK = 2;
-    private static final int CONTROL_DURATION = 5000;
+    private static final int REWIND_FFWD_UNIT = 5000;
+    private static final int SUBTITLE_DELAY_UNIT = 250;
+    private static final int VIDEO_INFO_HIDE_TIME = 3000;
+    private static final int SUBTITLE_DELAY_CONTROLLER_HIDE_TIME = 5000;
     //display surface
     private SurfaceHolder mSurfaceHolder;
     private SurfaceView mSurfaceView;
@@ -67,6 +70,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private LibVLC libvlc;
     private MediaPlayer mMediaPlayer = null;
     private Handler scrollSubtitleHandler = new Handler();
+    private Handler subtitleDelayControllerHandler = new Handler();
+    private Handler videoInfoHandler = new Handler();
     private int mVideoWidth;
     private int mVideoHeight;
     private TextView subtitleTextView;
@@ -77,12 +82,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     ImageButton playPauseButton;
     ImageButton fastForwardButton;
     ImageButton fileButton;
+    ImageButton subtitleFastForward;
+    ImageButton subtitleRewind;
     TextView timeCurrentTextView;
     SeekBar progressSeekBar;
     TextView timeTotalTextView;
+    TextView videoSurfaceInfo;
     boolean mDisplayRemainingTime = false;
     boolean mDragging;
-
+    private int subtitleDelay = 0;
+    private boolean isShowSubtitleDelayController = false;
 
     private TimedTextObject timedTextObject = new TimedTextObject();
     Runnable scrollSubtitleRunnable;
@@ -237,13 +246,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 startActivity(intent);
             }
         });
+        settingButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Toast.makeText(getBaseContext(), "Setting", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
 
         rewindButton = findViewById(R.id.rew);
         rewindButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //mMediaPlayer.setTime(mMediaPlayer.getTime() - CONTROL_DURATION);
-                mMediaPlayer.setTime(mMediaPlayer.getTime() - CONTROL_DURATION);
+                if(mMediaPlayer.getTime() - REWIND_FFWD_UNIT > 0) {
+                    mMediaPlayer.setTime(mMediaPlayer.getTime() - REWIND_FFWD_UNIT);
+                    showVideoSurfaceInfo("Seek: -5s");
+                }
             }
         });
 
@@ -254,12 +272,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 updatePausePlay();
             }
         });
+
         fastForwardButton = findViewById(R.id.ffwd);
         fastForwardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //mMediaPlayer.setTime(mMediaPlayer.getTime() + CONTROL_DURATION);
-                mMediaPlayer.setTime(mMediaPlayer.getTime() + CONTROL_DURATION);
+                if(mMediaPlayer.getTime() + REWIND_FFWD_UNIT < mMediaPlayer.getLength()){
+                    mMediaPlayer.setTime(mMediaPlayer.getTime() + REWIND_FFWD_UNIT);
+                    showVideoSurfaceInfo("Seek: +5s");
+                }
             }
         });
 
@@ -274,6 +295,33 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 finish();
             }
         });
+        fileButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Toast.makeText(getBaseContext(), "Open another video file.", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+        });
+
+        subtitleFastForward = findViewById(R.id.subtitle_ffwd);
+        subtitleFastForward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                subtitleDelay = subtitleDelay + SUBTITLE_DELAY_UNIT;
+                showSubtitleDelayController();
+                showVideoSurfaceInfo("Subtitle delay: " + ((float)subtitleDelay)/1000 + "s");
+            }
+        });
+
+        subtitleRewind = findViewById(R.id.subtitle_rew);
+        subtitleRewind.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                subtitleDelay = subtitleDelay - SUBTITLE_DELAY_UNIT;
+                showSubtitleDelayController();
+                showVideoSurfaceInfo("Subtitle delay: " + ((float)subtitleDelay)/1000 + "s");
+            }
+        });
 
         timeCurrentTextView = findViewById(R.id.time_current);
         progressSeekBar = findViewById(R.id.mediacontroller_progress);
@@ -282,6 +330,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         timeTotalTextView = findViewById(R.id.time);
 
         subtitleTextView = findViewById(R.id.subtitleTextView);
+        subtitleTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                isShowSubtitleDelayController = !isShowSubtitleDelayController;
+                if(isShowSubtitleDelayController){
+                    showVideoSurfaceInfo("Subtitle delay controller is enable.");
+                    showSubtitleDelayController();
+                }else {
+                    showVideoSurfaceInfo("Subtitle delay controller is disable.");
+                    hideSubtitleDelayController(0);
+                }
+                return true;
+            }
+        });
+
+        videoSurfaceInfo = findViewById(R.id.videoSurfaceInfo);
     }
 
     private void updatePausePlay() {
@@ -292,9 +356,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mMediaPlayer.isPlaying()) {
             playPauseButton.setImageResource(R.drawable.ic_media_play);
             mMediaPlayer.pause();
+            showVideoSurfaceInfo("Pause");
         } else {
             playPauseButton.setImageResource(R.drawable.ic_media_pause);
             mMediaPlayer.play();
+            showVideoSurfaceInfo("Play");
         }
     }
 
@@ -305,6 +371,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         playPauseButton.setImageResource(R.drawable.ic_media_pause);
         mMediaPlayer.play();
+        showVideoSurfaceInfo("play");
     }
 
     private void updatePause(){
@@ -314,6 +381,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         playPauseButton.setImageResource(R.drawable.ic_media_play);
         mMediaPlayer.pause();
+        showVideoSurfaceInfo("pause");
     }
 
     /**
@@ -362,6 +430,59 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 : Strings.millisToString(length));
     }
 
+    private void showSubtitleDelayController(){
+        if(subtitleRewind == null || subtitleFastForward == null || mMediaPlayer == null || ! isShowSubtitleDelayController){
+            return;
+        }
+
+        subtitleRewind.setVisibility(View.VISIBLE);
+        subtitleFastForward.setVisibility(View.VISIBLE);
+
+        hideSubtitleDelayController(SUBTITLE_DELAY_CONTROLLER_HIDE_TIME);
+    }
+
+    private void hideSubtitleDelayController(long delayMillis){
+        subtitleDelayControllerHandler.removeCallbacksAndMessages(null);
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if(subtitleRewind != null && subtitleFastForward != null && mMediaPlayer != null){
+                    subtitleRewind.setVisibility(View.INVISIBLE);
+                    subtitleFastForward.setVisibility(View.INVISIBLE);
+                }
+            }
+        };
+        subtitleDelayControllerHandler.postDelayed(runnable, delayMillis);
+    }
+
+    private void showVideoSurfaceInfo(@NonNull String text){
+        if(subtitleRewind == null || mMediaPlayer == null){
+            return;
+        }
+
+        videoSurfaceInfo.setText(text);
+        videoSurfaceInfo.setVisibility(View.VISIBLE);
+
+        hideVideoSurfaceInfo();
+    }
+
+    private void hideVideoSurfaceInfo(){
+        videoInfoHandler.removeCallbacksAndMessages(null);
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if(subtitleRewind != null && mMediaPlayer != null){
+                    videoSurfaceInfo.setText("");
+                    videoSurfaceInfo.setVisibility(View.INVISIBLE);
+                }
+            }
+        };
+        videoInfoHandler.postDelayed(runnable, VIDEO_INFO_HIDE_TIME);
+    }
+
+
     /* ============================
       Subtitle
      ============================ */
@@ -385,8 +506,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     int index = 0;
 
                     for (Caption caption : subtitles) {
-                        if (currentPos >= caption.start.mseconds
-                                && currentPos <= caption.end.mseconds) {
+                        if (currentPos >= caption.start.mseconds - subtitleDelay
+                                && currentPos <= caption.end.mseconds - subtitleDelay) {
                             listView.setItemChecked(index,true);
                             int height = listView.getHeight();
                             listView.setSelectionFromTop(index, height/2);
@@ -394,7 +515,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                             break;
                         } else {
                             onTimedText(null);
-                            if(currentPos < caption.end.mseconds){
+                            if(currentPos < caption.end.mseconds - subtitleDelay){
                                 break;
                             }
                         }
@@ -712,6 +833,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             options.add("--aout=opensles");
             options.add("--audio-time-stretch"); // time stretching
             options.add("--no-spu"); //no subtitle by LibVLC
+            options.add("--play-and-pause"); //pause at last frame
             options.add("-vvv"); // verbosity
 //            options.add("--http-reconnect");
 //            options.add("--network-caching="+6*1000);
@@ -743,6 +865,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 playPauseButton.setImageResource(R.drawable.ic_media_pause);
             }
 
+            if(mMediaPlayer.getTime() >= mMediaPlayer.getLength()){
+                isSeek = false;
+            }
+
             if(isSeek){
                 //While return -1 from getTime(), you cannot seek video. It happen only right after load media.
                 final Handler handler = new Handler();
@@ -764,18 +890,29 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
 
         mSurfaceView.getRootView().setOnTouchListener(new View.OnTouchListener() {
+            long lastTouchedTime = 0;
+
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    lastTouchedTime = System.currentTimeMillis();
                     Float posX = event.getX();
                     int width = view.getWidth();
                     if(posX < width/3){
-                        mMediaPlayer.setTime(mMediaPlayer.getTime() - CONTROL_DURATION);
+                        if(mMediaPlayer.getTime() - REWIND_FFWD_UNIT > 0) {
+                            showVideoSurfaceInfo("Seek: -5s");
+                            mMediaPlayer.setTime(mMediaPlayer.getTime() - REWIND_FFWD_UNIT);
+                        }
                     }else if(posX > width/3*2){
-                        mMediaPlayer.setTime(mMediaPlayer.getTime() + CONTROL_DURATION);
+                        if(mMediaPlayer.getTime() + REWIND_FFWD_UNIT < mMediaPlayer.getLength()){
+                            showVideoSurfaceInfo("Seek: +5s");
+                            mMediaPlayer.setTime(mMediaPlayer.getTime() + REWIND_FFWD_UNIT);
+                        }
                     }else{
                         updatePausePlay();
                     }
+
+                    showSubtitleDelayController();
                 }
                 if(event.getActionMasked() == MotionEvent.ACTION_UP) {
                     view.performClick();

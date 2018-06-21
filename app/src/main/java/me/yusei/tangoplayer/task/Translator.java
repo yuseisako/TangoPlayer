@@ -47,8 +47,14 @@ class Translator {
 
         JSONArray jsonArray = new JSONArray(inputJson);
         JSONArray jsonArray2 = (JSONArray) jsonArray.get(0);
-        JSONArray jsonArray3 = (JSONArray) jsonArray2.get(0);
+        JSONArray jsonArray3;
+        StringBuilder sb = new StringBuilder();
 
-        return jsonArray3.get(0).toString();
+        for(int count=0; count<jsonArray2.length();count++){
+            jsonArray3 = (JSONArray) jsonArray2.get(count);
+            sb.append(jsonArray3.get(0).toString());
+        }
+
+        return sb.toString();
     }
 }

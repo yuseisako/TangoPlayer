@@ -64,4 +64,21 @@
         <item name="android:contentDescription">@string/ImageButton_Folder</item>
     </style>
 
+    <style name="SubtitleControlImageButton">
+        <item name="android:background">@null</item>
+        <item name="android:layout_width">50dip</item>
+        <item name="android:layout_height">50dip</item>
+        <item name="android:visibility">invisible</item>
+        <item name="android:scaleType">fitXY</item>
+    </style>
+
+    <style name="SubtitleControlImageButton.SubtitleFastForward">
+        <item name="android:src">@drawable/subtitle_fast_forward_buttton</item>
+        <item name="android:contentDescription">@string/ImageButton_SubtitleFastForward</item>
+    </style>
+
+    <style name="SubtitleControlImageButton.SubtitleRewind">
+        <item name="android:src">@drawable/subtitle_rewind_buttton</item>
+        <item name="android:contentDescription">@string/ImageButton_SubtitleRewind</item>
+    </style>
 </resources>
