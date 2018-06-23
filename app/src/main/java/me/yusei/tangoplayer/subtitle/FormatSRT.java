@@ -100,7 +100,8 @@ public class FormatSRT implements TimedTextFileFormat {
 						lineCounter++;
 						line = br.readLine().trim();
 						while (!line.isEmpty()){
-							lineStringBuilder.append(line).append(" ");
+							//TODO:check subtitleTextView what it looks like
+							lineStringBuilder.append(line).append("<br />");
 							line = br.readLine().trim();
 							lineCounter++;
 						}

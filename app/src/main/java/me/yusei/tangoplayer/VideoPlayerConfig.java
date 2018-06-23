@@ -10,6 +10,7 @@ import java.io.File;
 public class VideoPlayerConfig {
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
+    private static final String VIDEO_DELAY = "VIDEO_DELAY";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
     public static final String LOCATION = "VideoPlayerActivity.location";
 
@@ -105,6 +106,28 @@ public class VideoPlayerConfig {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(VIDEO_DURATION, duration);
+            editor.apply();
+        }
+    }
+
+    /**
+     * Get duration from SP
+     * @return long duration
+     */
+    static int getVideoDelay(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getInt(VIDEO_DELAY, 0);
+    }
+
+    /**
+     * Save duration to SP
+     * @param delay video duration
+     */
+    static void setVideoDelay(Context context, int delay) {
+        if (delay >= 0) {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt(VIDEO_DELAY, delay);
             editor.apply();
         }
     }

@@ -1,11 +1,13 @@
 package me.yusei.tangoplayer;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -39,7 +41,6 @@ public class StartActivity extends AppCompatActivity {
     private void startFilePickerActivity(){
         VideoPlayerConfig.setVideoPosition(this, 0);
         Intent i = new Intent(this, FilteredFilePickerActivity.class);
-        // ここで複数ファイル選択できないようにしている？
         i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
         i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
         i.putExtra(FilteredFilePickerActivity.EXTRA_MODE, FilteredFilePickerActivity.MODE_FILE);
@@ -81,41 +82,45 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void checkWriteExternalStoragePermission() {
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // need to get permission
-            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                //In the case, an user reject permission before, write code for show description of permission.
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                // need to get permission
+                if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    //In the case, an user reject permission before, write code for show description of permission.
 
-                // Show an expanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                new AlertDialog.Builder(StartActivity.this)
-                        .setTitle("Permission required")
-                        .setMessage("Location is required for this application to work ! ")
-                        .setPositiveButton("Allow", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                        MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+                    // Show an expanation to the user *asynchronously* -- don't block
+                    // this thread waiting for the user's response! After the user
+                    // sees the explanation, try again to request the permission.
+                    new AlertDialog.Builder(StartActivity.this)
+                            .setTitle("Permission required")
+                            .setMessage("Location is required for this application to work ! ")
+                            .setPositiveButton("Allow", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                            MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
 
-                            }
+                                }
 
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                                finish();
-                            }
-                        }).show();
-            }else{
-                // No explanation needed, we can request the permission.
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                    finish();
+                                }
+                            }).show();
+                } else {
+                    // No explanation needed, we can request the permission.
+                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+                }
+
+            } else {
+                //no need to get permission
+                startNextActivity();
             }
-
         }else{
-            //no need to get permission
             startNextActivity();
         }
     }
@@ -128,6 +133,7 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[], @NonNull int[] grantResults) {

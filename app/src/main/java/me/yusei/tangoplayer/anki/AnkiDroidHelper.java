@@ -188,6 +188,9 @@ public class AnkiDroidHelper {
      */
     private Long getDeckId(@NonNull String deckName) throws IllegalStateException {
         Map<Long, String> deckList = mApi.getDeckList();
+        if(deckList == null){
+            return null;
+        }
         for (Map.Entry<Long, String> entry : deckList.entrySet()) {
             if (entry.getValue().equalsIgnoreCase(deckName)) {
                 return entry.getKey();

@@ -68,7 +68,7 @@ public class FormatSCC implements TimedTextFileFormat {
 			if (!br.readLine().trim().equalsIgnoreCase("Scenarist_SCC V1.0")) {
 				// this is a fatal parsing error.
 				throw new FatalParsingException(
-						"The fist line should define the file type: \"Scenarist_SCC V1.0\"");
+						"The first line should define the file type: \"Scenarist_SCC V1.0\"");
 
 			} else {
 

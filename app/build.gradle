@@ -5,10 +5,10 @@ android {
     buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "me.yusei.tangoplayer"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName "1.0b"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -23,11 +23,11 @@ repositories {
     mavenCentral()
 }
 
-//configurations {
-//    all {
-//        exclude group: 'org.json', module: 'json'
-//    }
-//}
+configurations {
+    all {
+        exclude group: 'org.json', module: 'json'
+    }
+}
 
 dependencies {
     implementation "com.android.support:support-v4:27.0.0"
@@ -41,7 +41,6 @@ dependencies {
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     compile 'com.nex3z:flow-layout:1.2.2'
     compile 'de.psdev.licensesdialog:licensesdialog:1.8.3'
-    compile 'org.json:json:20180130'
     compile 'com.webianks.library:easy-feedback:1.0.2'
     compile 'de.mrmaffen:vlc-android-sdk:3.0.0'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'

@@ -12,7 +12,6 @@ import me.yusei.tangoplayer.subtitle.FatalParsingException;
 import me.yusei.tangoplayer.subtitle.FormatASS;
 import me.yusei.tangoplayer.subtitle.FormatSCC;
 import me.yusei.tangoplayer.subtitle.FormatSRT;
-import me.yusei.tangoplayer.subtitle.FormatSTL;
 import me.yusei.tangoplayer.subtitle.FormatTTML;
 import me.yusei.tangoplayer.subtitle.TimedTextObject;
 
@@ -77,9 +76,6 @@ public class ReadSubtitleFileTask extends AsyncTask<TimedTextObject, Integer, Ti
                             case "scc":
                                 FormatSCC formatSCC = new FormatSCC();
                                 return formatSCC.parseFile(mSubtitleFilePath, subtitleInputStream);
-                            case "stl":
-                                FormatSTL formatSTL = new FormatSTL();
-                                return formatSTL.parseFile(mSubtitleFilePath, subtitleInputStream);
                             case "ttml":
                                 FormatTTML formatTTML = new FormatTTML();
                                 return formatTTML.parseFile(mSubtitleFilePath, subtitleInputStream);

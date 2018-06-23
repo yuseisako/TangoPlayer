@@ -26,10 +26,10 @@
 
     <style name="MediaImageButton">
         <item name="android:background">@null</item>
-        <item name="android:layout_width">34dip</item>
+        <item name="android:layout_width">54dip</item>
         <item name="android:layout_height">44dip</item>
-        <item name="android:layout_marginLeft">10dip</item>
-        <item name="android:layout_marginRight">10dip</item>
+        <item name="android:paddingLeft">10dip</item>
+        <item name="android:paddingRight">10dip</item>
         <item name="android:paddingBottom">10dip</item>
         <item name="android:scaleType">fitXY</item>
     </style>

@@ -1,6 +1,5 @@
 package me.yusei.tangoplayer.task;
 
-
 import org.json.JSONArray;
 
 import java.io.BufferedReader;

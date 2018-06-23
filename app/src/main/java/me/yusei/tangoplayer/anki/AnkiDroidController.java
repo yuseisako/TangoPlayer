@@ -1,12 +1,9 @@
 package me.yusei.tangoplayer.anki;
 
 import android.content.Context;
-import android.util.SparseBooleanArray;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,14 +91,14 @@ public class AnkiDroidController {
 
         try{
             did = mAnkiDroid.findDeckIdByName(deckName);
+            if (did == null) {
+                did = mAnkiDroid.getApi().addNewDeck(deckName);
+                mAnkiDroid.storeDeckReference(deckName, did);
+            }
         }catch (IllegalStateException ise){
             return ANKI_DROID_ILLIGAL_STATE_ERROR;
         }
 
-        if (did == null) {
-            did = mAnkiDroid.getApi().addNewDeck(deckName);
-            mAnkiDroid.storeDeckReference(deckName, did);
-        }
         return did;
     }
 

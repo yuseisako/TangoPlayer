@@ -103,13 +103,6 @@ public class TimedTextObject {
     }
 
     /**
-     * Method to generate the .STL file
-     */
-    public byte[] toSTL(){
-        return new FormatSTL().toFile(this);
-    }
-
-    /**
      * Method to generate the .SCC file
      * @return
      */
