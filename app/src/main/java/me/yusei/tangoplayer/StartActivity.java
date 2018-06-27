@@ -34,8 +34,6 @@ public class StartActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        //TODO: if videofilepath is invalid releasePlayer(), launch FilePicker(); in VideoPlayerActivity
-
     }
 
     private void startFilePickerActivity(){
@@ -67,20 +65,12 @@ public class StartActivity extends AppCompatActivity {
             File file = Utils.getFileForUri(files.get(0));
             VideoPlayerConfig.setVideoPosition(this, 0);
             startVideoPlayerActivity(file.toString());
-            //TODO call setvideofilepath() in initialaizePlayer()
-
-
-//            if (initializePlayer(file.toString())) {
-//                setVideoFilePath(file.toString());
-//            } else {
-//                Toast.makeText(this, getResources().getString(R.string.error_invalid_video_file), Toast.LENGTH_SHORT).show();
-//                launchFilePicker();
-//            }
         }else if(resultCode ==  RESULT_CANCELED){
             finish();
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private void checkWriteExternalStoragePermission() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -146,7 +136,6 @@ public class StartActivity extends AppCompatActivity {
                 // permission denied, boo! Disable the
                 // functionality that depends on this permission.
                 Utility.infoLog("write storage permission NOT granted.");
-                //TODO: show permission dialog again.
                 checkWriteExternalStoragePermission();
             }
         }

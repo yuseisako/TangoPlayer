@@ -13,8 +13,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources false
+            proguardFile 'proguard.cfg'
         }
     }
 }
@@ -30,19 +31,19 @@ configurations {
 }
 
 dependencies {
-    implementation "com.android.support:support-v4:27.0.0"
+    implementation "com.android.support:support-v4:27.1.1"
     compile fileTree(include: ['*.jar'], dir: 'libs')
     //    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
     //        exclude group: 'com.android.support', module: 'support-annotations'
     //    })
     compile 'com.android.support:preference-v7:27.1.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.nononsenseapps:filepicker:4.1.0'
+    compile 'com.android.support.constraint:constraint-layout:1.1.2'
+    compile 'com.nononsenseapps:filepicker:4.2.1'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
     compile 'com.nex3z:flow-layout:1.2.2'
     compile 'de.psdev.licensesdialog:licensesdialog:1.8.3'
-    compile 'com.webianks.library:easy-feedback:1.0.2'
     compile 'de.mrmaffen:vlc-android-sdk:3.0.0'
+    compile 'com.github.deano2390:MaterialShowcaseView:1.2.0@aar'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'
     testCompile 'junit:junit:4.12'
 }

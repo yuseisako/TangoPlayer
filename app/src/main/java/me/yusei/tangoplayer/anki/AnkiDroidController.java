@@ -1,6 +1,7 @@
 package me.yusei.tangoplayer.anki;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.widget.Toast;
 
 import java.util.Collections;
@@ -21,21 +22,19 @@ public class AnkiDroidController {
     // List of field names that will be used in AnkiDroid model
     public static final String[] FIELDS = {"Word", "Meaning", "Sentence", "SentenceMeaning"};
     // Template for the question of each card
-    public static final String QFMT1 = "<div class=big>{{Word}}</div><br>{{Sentence}}";
-    public static final String QFMT2 = "{{Meaning}}<br><br><div class=small><br>({{SentenceMeaning}})</div>";
-    public static final String[] QFMT = {QFMT1, QFMT2};
+    private static final String QFMT1 = "<div class=big>{{Word}}</div><br>{{Sentence}}";
+    private static final String QFMT2 = "<div class=big>{{Meaning}}</div><br>{{SentenceMeaning}}</div>";
+    private static final String[] QFMT = {QFMT1, QFMT2};
     // Template for the answer (use identical for both sides)
-    static final String AFMT1 = "{{Meaning}}\n" +
+    private static final String AFMT1 = "<div class=big>{{Word}}</div>{{Meaning}}<br><br>\n" +
+            "<div class=small>{{Sentence}}<br>{{SentenceMeaning}}</div>" +
             "<br><br>\n" +
-            "<a href=\"#\" onclick=\"document.getElementById('hint').style.display='block';return false;\">Sentence Translation</a>\n" +
-            "<div id=\"hint\" style=\"display: none\">{{SentenceMeaning}}</div>\n" +
-            "<br><br>\n" +
-            "<div class=small>{{Tags}}</div>";
-    public static final String[] AFMT = {AFMT1, AFMT1};
+            "<div class=small>TAG: {{Tags}}</div>";
+    private static final String[] AFMT = {AFMT1, AFMT1};
+    private static String[] cardName = {"", ""};
 
-    public static final String[] CARD_NAMES = {"Japanese>English", "English>Japanese"};
     // CSS to share between all the cards (optional). User will need to install the NotoSans font by themselves
-    public static final String CSS = ".card {\n" +
+    private static final String CSS = ".card {\n" +
             " font-size: 24px;\n" +
             " text-align: center;\n" +
             " color: black;\n" +
@@ -45,7 +44,7 @@ public class AnkiDroidController {
             "\n" +
             ".big { font-size: 48px; }\n" +
             ".small { font-size: 18px;}\n";
-    public static final long ANKI_DROID_ILLIGAL_STATE_ERROR = -1;
+    private static final long ANKI_DROID_ILLIGAL_STATE_ERROR = -1;
 
 
     public AnkiDroidController(Context context, AnkiDroidHelper ankiDroidHelper){
@@ -53,13 +52,20 @@ public class AnkiDroidController {
         mAnkiDroid = ankiDroidHelper;
     }
 
-    public boolean addCardsToAnkiDroid(String deckName, List<Map<String, String>> data){
+    public void addCardsToAnkiDroid(@NonNull String deckName, List<Map<String, String>> data, @NonNull String translationLanguage){
+        if(deckName.isEmpty() || translationLanguage.isEmpty()){
+            return;
+        }
         long deckId =getDeckId(deckName);
         if(deckId == ANKI_DROID_ILLIGAL_STATE_ERROR){
             //Avoid crash cause by AnkiDroid doesn't have permission of read/write the storage,
             Toast.makeText(mContext, mContext.getResources().getText(R.string.error_msg_no_acccess_to_anki_db), Toast.LENGTH_SHORT).show();
-            return false;
+            return;
         }
+
+        cardName[0] = "English>"+translationLanguage;
+        cardName[1] = translationLanguage+">English";
+
         long modelId = getModelId(deckName);
         String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
         // Build list of fields and tags
@@ -80,10 +86,9 @@ public class AnkiDroidController {
         // Remove any duplicates from the LinkedLists and then add over the API
         mAnkiDroid.removeDuplicates(fields, tags, modelId);
         if(mAnkiDroid.getApi().addNotes(modelId, deckId, fields, tags) != 1){
-            return false;
+            return;
         }
         Toast.makeText(mContext, mContext.getResources().getString(R.string.info_msg_anki_card_is_added), Toast.LENGTH_SHORT).show();
-        return true;
     }
 
     private long getDeckId(String deckName){
@@ -113,7 +118,7 @@ public class AnkiDroidController {
 
         if (mid == null) {
             mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS,
-                    CARD_NAMES, QFMT, AFMT, CSS, getDeckId(deckName), null);
+                    cardName, QFMT, AFMT, CSS, getDeckId(deckName), null);
             mAnkiDroid.storeModelReference(MODEL_NAME, mid);
         }
         return mid;

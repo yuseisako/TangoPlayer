@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -57,6 +58,8 @@ import me.yusei.tangoplayer.task.ReadSubtitleFileTask;
 import me.yusei.tangoplayer.task.ReadSubtitleFileTaskCallback;
 import me.yusei.tangoplayer.task.TranslateTask;
 import me.yusei.tangoplayer.task.TranslateTaskCallback;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback , LibVLC.HardwareAccelerationError{
     private static final int MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK = 2;
@@ -64,6 +67,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private static final int SUBTITLE_DELAY_UNIT = 250;
     private static final int VIDEO_INFO_HIDE_TIME = 3000;
     private static final int SUBTITLE_DELAY_CONTROLLER_HIDE_TIME = 5000;
+    private static final String ANKI_DROID_PACKAGE_NAME = "com.ichi2.anki";
+
     //display surface
     private SurfaceHolder mSurfaceHolder;
     private SurfaceView mSurfaceView;
@@ -100,6 +105,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private TimedTextObject timedTextObject = new TimedTextObject();
     Runnable scrollSubtitleRunnable;
     private boolean mBackPressed;
+    AlertDialog ankiDialog;
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
@@ -165,12 +171,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
 
 
-
     /* ===============================================================
        Task
      =============================================================== */
 
-    private void startTranslateTask(final EditText editTextWordMeaning, String word){
+    private void startTranslateTask(@NonNull final EditText editTextWordMeaning, String word){
         TranslateTask task = new TranslateTask(new TranslateTaskCallback() {
             @Override
             public void onPreExecute() {
@@ -179,10 +184,21 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             @Override
             public void onPostExecute(String result) {
-                if (editTextWordMeaning != null && result != null && !result.isEmpty()) {
+                String hint = editTextWordMeaning.getHint().toString();
+                if (result != null && !result.isEmpty()) {
                     editTextWordMeaning.setText(result);
+
+                    if(hint.contains("Word")){
+                        editTextWordMeaning.setHint("Word meaning");
+                    }else {
+                        editTextWordMeaning.setHint("Sentence meaning");
+                    }
                 }else{
-                    Toast.makeText(getApplicationContext(), "Oops, Checking the translation is failed.", Toast.LENGTH_SHORT).show();
+                    if(hint.contains("Word")){
+                        editTextWordMeaning.setHint("Word meaning: Translation failed! Check Internet.");
+                    }else {
+                        editTextWordMeaning.setHint("Sentence meaning: Translation failed! Check Internet.");
+                    }
                 }
             }
 
@@ -215,9 +231,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             @Override
             public void onPostExecute(TimedTextObject parsedTimedTextObject) {
-                if(parsedTimedTextObject == null){
-                    //TODO: handling parse error
-                    //TODO: if return here, media controller view has no total time and current video time.
+                if(parsedTimedTextObject == null ||
+                        parsedTimedTextObject.captions == null || parsedTimedTextObject.captions.size() == 0){
                     return;
                 }
                 drawSubtitles(parsedTimedTextObject);
@@ -378,9 +393,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         }
 
-        playPauseButton.setImageResource(R.drawable.ic_media_pause);
-        mMediaPlayer.play();
-        showVideoSurfaceInfo("Play");
+        if(!mMediaPlayer.isPlaying()){
+            playPauseButton.setImageResource(R.drawable.ic_media_pause);
+            mMediaPlayer.play();
+            showVideoSurfaceInfo("Play");
+        }
     }
 
     private void updatePause(){
@@ -388,9 +405,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         }
 
-        playPauseButton.setImageResource(R.drawable.ic_media_play);
-        mMediaPlayer.pause();
-        showVideoSurfaceInfo("Pause");
+        if(mMediaPlayer.isPlaying()){
+            playPauseButton.setImageResource(R.drawable.ic_media_play);
+            mMediaPlayer.pause();
+            showVideoSurfaceInfo("Pause");
+        }
     }
 
     /**
@@ -521,10 +540,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                             listView.setItemChecked(index,true);
                             int height = listView.getHeight();
                             listView.setSelectionFromTop(index, height/2);
-                            onTimedText(caption);
+                            setSubtitleTextView(caption);
                             break;
                         } else {
-                            onTimedText(null);
+                            setSubtitleTextView(null);
                             if(currentPos < caption.end.mseconds - subtitleDelay){
                                 break;
                             }
@@ -539,8 +558,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         scrollSubtitleHandler.post(scrollSubtitleRunnable);
     }
 
-
-    public void onTimedText(Caption caption) {
+    @SuppressWarnings("deprecation")
+    public void setSubtitleTextView(Caption caption) {
         if(subtitleTextView == null){
             return;
         }
@@ -548,9 +567,39 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             subtitleTextView.setText("");
             return;
         }
-        //TODO: support tag.
         String line = caption.content.replace("<br />", " ");
-        subtitleTextView.setText(Html.fromHtml(line).toString());
+        if( ( line.contains("<b>") && line.contains("</b>") ) ||
+                ( line.contains("<i>") && line.contains("</i>") ) ||
+                ( line.contains("<font color=") && line.contains("</font>") ) ){
+            Spanned durationSpanned;
+            if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                durationSpanned = Html.fromHtml(line,Html.FROM_HTML_MODE_LEGACY);
+            } else {
+                durationSpanned = Html.fromHtml(line);
+            }
+            subtitleTextView.setText(durationSpanned);
+        }else {
+            subtitleTextView.setText(line);
+        }
+    }
+
+    public String removeSubtitleTag(@NonNull String subtitle){
+        //srt format tags are according to https://www.visualsubsync.org/help/srt
+        if(subtitle.contains("<b>") && subtitle.contains("</b>")){
+            subtitle = subtitle.replace("<b>", "").replace("</b>", "");
+        }
+        if(subtitle.contains("<i>") && subtitle.contains("</i>")){
+            subtitle = subtitle.replace("<i>", "").replace("</i>", "");
+        }
+        if(subtitle.contains("<u>") && subtitle.contains("</u>")){
+            subtitle = subtitle.replace("<u>", "").replace("</u>", "");
+        }
+        if(subtitle.contains("<font color=") && subtitle.contains("</font>")){
+            subtitle = subtitle.replace("<font color=\"#??????\">", "").replace("</font>","").
+                    replace("<font color=\"red\">", "").replace("<font color=\"green\">", "").
+                    replace("<font color=\"blue\">", "");
+        }
+        return subtitle;
     }
 
     private void drawOverlayProgress(){
@@ -581,8 +630,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         Collection<Caption> subtitles = timedTextObject.captions.values();
         final ArrayList<Integer> startTimeList = new ArrayList<>();
         for (Caption caption : subtitles) {
-            String line = caption.content.replace("<br />", " ");
-            arrayAdapter.add(Html.fromHtml(line).toString());
+            String line =  caption.content.replace("<br />", " ");
+            arrayAdapter.add(removeSubtitleTag(line));
             startTimeList.add(caption.start.mseconds);
         }
         if(arrayAdapter.getCount() > 0){
@@ -637,9 +686,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         builder.setPositiveButton("Add this card", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Boolean isAnkiDroidInstalled = appInstalledOrNot("com.ichi2.anki");
+                Boolean isAnkiDroidInstalled = ankiDroidInstalledOrNot();
                 if( ! isAnkiDroidInstalled){
-                    Toast.makeText(getApplicationContext(), "Please install AnkiDroid First.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Failed to add card. Please install AnkiDroid First.", Toast.LENGTH_LONG).show();
                 }else{
                     String word  = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
                     String wordMeaning  = ((EditText)(layout.findViewById(R.id.add_word_meaning))).getText().toString();
@@ -659,19 +708,20 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                         String deckName = sharedPreferences.getString(getResources().getString(R.string.key_list_deck_name), getResources().getString(R.string.pref_deck_name_default));
                         if(deckName.equals(getResources().getString(R.string.pref_deck_name_default))){
-                            deckName = "Tango Player";
-                        }else{
                             String videoFileName = VideoPlayerConfig.getVideoFileName(getApplicationContext());
                             if(videoFileName != null){
-                                deckName = videoFileName;
+                                deckName = videoFileName.substring(0, videoFileName.lastIndexOf("."));
                             }
+                        }else {
+                            deckName = "Tango Player";
                         }
-                        mAnkiDroidController.addCardsToAnkiDroid(deckName, cardContentsList);
+                        mAnkiDroidController.addCardsToAnkiDroid(deckName, cardContentsList, getTranslationLanguage());
                     }
                 }
                 updatePlay();
             }
         });
+
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -679,8 +729,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                updatePlay();
+            }
+        });
+
         builder.setView(layout);
-        builder.create().show();
+        ankiDialog = builder.create();
+        ankiDialog.show();
 
         ImageButton translateButton = layout.findViewById(R.id.translate);
         translateButton.setOnClickListener(new View.OnClickListener() {
@@ -749,15 +807,67 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    private boolean appInstalledOrNot(String uri) {
+    private boolean ankiDroidInstalledOrNot() {
         PackageManager pm = getPackageManager();
         try {
-            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            pm.getPackageInfo(ANKI_DROID_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
             return true;
         } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private String getTranslationLanguage(){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String languageCode = sharedPreferences.getString(getResources().getString(R.string.key_list_translation_language), getResources().getString(R.string.pref_translation_language_default));
+        String[] languageCodes = getResources().getStringArray(R.array.pref_translation_language_code);
+        String[] languages = getResources().getStringArray(R.array.pref_translation_language);
+        for(int i=0; i<languageCodes.length ; i++){
+            if(languageCode.compareTo(languageCodes[i]) == 0){
+                return languages[i];
+            }
+        }
+        return "";
+    }
+
+    /* ============================
+       Other
+     ============================ */
+    private void showTutorial(){
+        String SHOWCASE_ID = "videoPlayerActivity";
+        String FIRST_RUN = "firstRun";
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean isFirstRun = sharedPreferences.getBoolean(FIRST_RUN, true);
+        if (isFirstRun) {
+            sharedPreferences.edit().putBoolean(FIRST_RUN, false).apply();
+        }else {
+            return;
         }
 
-        return false;
+        ListView listView = findViewById(R.id.subtitleListView);
+        SurfaceView videoSurface = findViewById(R.id.video_view);
+        if(mMediaPlayer == null || listView == null || videoSurface == null){
+            return;
+        }
+
+        ShowcaseConfig config = new ShowcaseConfig();
+        config.setDelay(200);
+
+        MaterialShowcaseSequence sequence = new MaterialShowcaseSequence(this, SHOWCASE_ID);
+
+        sequence.setConfig(config);
+
+        sequence.addSequenceItem(listView,
+                "Lap to scroll, long tap to show AnkiDroid dialog.", "GOT IT");
+
+        sequence.addSequenceItem(subtitleTextView,
+                "Long tap to show video delay controller.", "GOT IT");
+
+        sequence.addSequenceItem(videoSurface,
+                "Tap to play/pause, fast forward, rewind.", "GOT IT");
+
+        sequence.start();
     }
 
     /* ===============================================================
@@ -822,18 +932,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(mSurfaceView == null){
             Toast.makeText(this, "mSurfaceView is null", Toast.LENGTH_SHORT).show();
         }
-        //mMediaController = new AndroidMediaController(this, false);
-
-        // Inflate the layout for this fragment
-//        final View fv = inflater.inflate(R.layout.fragment_hogehogeplayer, container, false);
-//        mVideo = (FrameLayout)fv.findViewById(R.id.video_view);
-//        mCustomMediaController = new CustomMediaController(this) {
-//
-//            @Override
-//            public void hide() {
-//                //Do not hide.
-//            }
-//        };
 
         Boolean isSeek = false;
         String videoFilePath = VideoPlayerConfig.getVideoFilePath(this);
@@ -857,8 +955,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
             arrayAdapter.add("Subtitle file is NOT found.");
+            arrayAdapter.add("You need to prepare subtitle file, put it in the same folder as video file.");
             listView.setAdapter(arrayAdapter);
         }
+        showTutorial();
 
         return true;
     }
@@ -899,7 +999,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             m.setHWDecoderEnabled(true, false);
             mMediaPlayer.setMedia(m);
 
-            mMediaPlayer.play();
+            if(ankiDialog == null || !ankiDialog.isShowing()){
+                mMediaPlayer.play();
+            }
+
             if(playPauseButton != null){
                 playPauseButton.setImageResource(R.drawable.ic_media_pause);
             }
@@ -971,7 +1074,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         long currentPosition = mMediaPlayer.getTime();
         VideoPlayerConfig.setVideoPosition(this, currentPosition);
         VideoPlayerConfig.setVideoDelay(this, subtitleDelay);
-        onTimedText(null);
+        setSubtitleTextView(null);
 
         mMediaPlayer.stop();
         final IVLCVout vout = mMediaPlayer.getVLCVout();
@@ -1078,15 +1181,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         @Override
         public void onEvent(MediaPlayer.Event event) {
             VideoPlayerActivity player = mOwner.get();
-
-            Utility.debugLog("Player EVENT");
             switch(event.type) {
                 case MediaPlayer.Event.EndReached:
-                    Utility.debugLog("MediaPlayerEndReached");
                     player.releasePlayer();
                     break;
                 case MediaPlayer.Event.EncounteredError:
-                    Utility.debugLog("Media Player Error, re-try");
                     //player.releasePlayer();
                     break;
                 case MediaPlayer.Event.Playing:

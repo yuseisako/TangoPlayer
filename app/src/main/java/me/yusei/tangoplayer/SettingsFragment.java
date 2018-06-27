@@ -1,14 +1,13 @@
 package me.yusei.tangoplayer;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.webianks.easy_feedback.EasyFeedback;
 
 import de.psdev.licensesdialog.LicensesDialog;
 import de.psdev.licensesdialog.licenses.ApacheSoftwareLicense20;
@@ -40,6 +39,11 @@ public class SettingsFragment extends PreferenceFragment {
     }
 
     @Override
+    public void setArguments(Bundle args) {
+        super.setArguments(args);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref_setting);
@@ -58,12 +62,12 @@ public class SettingsFragment extends PreferenceFragment {
         Preference.OnPreferenceClickListener sendFeedbackListener = new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                String email = "profical" + "[at]" + "gmai.com";
-                new EasyFeedback.Builder(getContext())
-                        .withEmail(email)
-                        .withSystemInfo()
-                        .build()
-                        .start();
+                String email = "profical" + "@" + "gmai.com";
+                Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                        "mailto",email, null));
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Subject");
+                emailIntent.putExtra(Intent.EXTRA_TEXT, "Please write your feedback.");
+                startActivity(Intent.createChooser(emailIntent, "Send email..."));
                 return true;
             }
         };
@@ -75,7 +79,7 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 if(clickCounter++ > 10){
-                    Toast.makeText(getContext(), "Language connects people with <3", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Language connects people with <3", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }
@@ -163,15 +167,19 @@ public class SettingsFragment extends PreferenceFragment {
             }else if(title.compareTo(getResources().getString(R.string.ankidroid_api)) == 0){
                 showLicense(getResources().getString(R.string.ankidroid_api),
                         "https://github.com/ankidroid/Anki-Android",
-                        "Copyright (C) 2007 Free Software Foundation, Inc.", LICENSE_GNU3);
+                        "Copyright (C) 2007 Free Software Foundation, Inc.", LICENSE_LGPL21);
             }else if(title.compareTo(getResources().getString(R.string.lib_vlc)) == 0){
                 showLicense(getResources().getString(R.string.lib_vlc),
                         "https://github.com/videolan/vlc-android",
-                        "Copyright (c) 2018 VideoLAN", LICENSE_GPL20);
-            }else if(title.compareTo(getResources().getString(R.string.easyfeedback))==0){
-                showLicense(getResources().getString(R.string.easyfeedback),
+                        "Copyright (c) 2018 VideoLAN", LICENSE_LGPL21);
+            }else if(title.compareTo(getResources().getString(R.string.material_show_case))==0){
+                showLicense(getResources().getString(R.string.material_show_case),
                         "https://github.com/webianks/EasyFeedback",
-                        "Copyright (c) 2017 Ramankit Singh", LICENSE_APACHE2);
+                        "Copyright (c) 2015 Dean Wild", LICENSE_APACHE2);
+            }else if(title.compareTo(getResources().getString(R.string.tango_player))==0){
+                showLicense(getResources().getString(R.string.tango_player),
+                        "https://github.com/yuseisako/TangoPlayer",
+                        "Copyright (c) 2018 Yusei Sako", LICENSE_MIT);
             }
 
             return true;
@@ -211,7 +219,9 @@ public class SettingsFragment extends PreferenceFragment {
                     notices.addNotice(new Notice(name, url, copyright, new GnuGeneralPublicLicense20()));
                     break;
             }
-            new LicensesDialog.Builder(getContext()).setNotices(notices).build().show();
+
+            new LicensesDialog.Builder(getActivity()).setNotices(notices).build().show();
+
 
         }
 
