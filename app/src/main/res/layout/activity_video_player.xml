@@ -10,7 +10,7 @@
          limitations under the License.
     -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true">
@@ -21,7 +21,6 @@
         android:orientation="vertical">
 
         <FrameLayout
-            android:id="@+id/videoSurfaceContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
             <SurfaceView
@@ -45,25 +44,25 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_horizontal"
+                    tools:ignore="UselessParent">
                     <ImageButton android:id="@+id/subtitle_rew"
-                        style="@style/SubtitleControlImageButton.SubtitleRewind"/>
+                        style="@style/SubtitleControlImageButton.SubtitleRewind"
+                        android:contentDescription="@string/ImageButton_SubtitleRewind" />
                     <TextView
                         android:id="@+id/subtitleTextView"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:shadowDx="1.5"
-                        android:shadowDy="1.5"
-                        android:shadowRadius="1"
-                        android:shadowColor="@color/subtitleInVideoShadowColor"
                         android:textColor="@color/subtitleInVideoTextColor"
                         android:textSize="@dimen/subtitleTextSize"
+                        android:background="@color/subtitleInVideoShadowColor"
                         android:textAlignment="center"
-                        android:layout_weight="1"/>
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp" />
                     <ImageButton android:id="@+id/subtitle_ffwd"
-                        style="@style/SubtitleControlImageButton.SubtitleFastForward" />
+                        style="@style/SubtitleControlImageButton.SubtitleFastForward"
+                        android:contentDescription="@string/ImageButton_SubtitleFastForward" />
                 </LinearLayout>
             </FrameLayout>
         </FrameLayout>
@@ -76,7 +75,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
             <RelativeLayout
-                android:id="@+id/media_controller_container"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true" >

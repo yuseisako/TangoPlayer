@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">単語動画プレイヤー</string>
+    <!--Error Message-->
+    <string name="error_msg_no_acccess_to_anki_db">[E-1]: AnkiDroidのデータベースにアクセスできませんでした。 AnkiDroidアプリでストレージへのアクセスを許可しているか確認してください。</string>
+    <string name="error_msg_no_write_storage_permission">[E-2]: ストレージへのアクセス権がありません。アクセス権のダイアログで「許可」を選択してください。</string>
+    <string name="error_msg_no_write_anki_db_permission">[E-3]: AnkiDroidデータベースにアクセスできませんでした。アクセス権のダイアログで「許可」を選択してください。</string>
+    <string name="error_msg_anki_not_installed">[E-4]: 単語カード追加に失敗しました。はじめに、AnkiDroidのインストールしてください。</string>
+    <string name="error_msg_exception_create_player">[E-5]: 動画プレイヤーの処理に失敗しました。</string>
+    <string name="error_msg_hardware_accelaration">[E-6]: ハードウェアアクセラレーションの処理に失敗しました。</string>
+
+    <!--Warning Message-->
+    <string name="warn_msg_subtitle_not_found1">字幕ファイルがみつかりませんでした。</string>
+    <string name="warn_msg_subtitle_not_found2">動画ファイルと同名の字幕ファイルを用意してください。</string>
+
+    <!--Information Message-->
+    <string name="info_msg_anki_card_is_added">カードを追加しました。</string>
+
+    <!--Media Player ImageButton-->
+    <string name="ImageButton_Play">再生</string>
+    <string name="ImageButton_Pause">一時停止</string>
+    <string name="ImageButton_Rewind">巻き戻り</string>
+    <string name="ImageButton_FastForward">早送り</string>
+    <string name="ImageButton_Setting">設定</string>
+    <string name="ImageButton_Folder">他の動画ファイルを選択する</string>
+    <string name="ImageButton_SubtitleFastForward">字幕早送り</string>
+    <string name="ImageButton_SubtitleRewind">字幕巻き戻り</string>
+
+    <!--AnkiDialog-->
+    <string name="ankidialog_title">AnkiDroidに単語カードを追加</string>
+    <string name="ankidialog_add_card">カード追加</string>
+    <string name="ankidialog_button_translate">翻訳</string>
+    <string name="ankidialog_hint_word">単語</string>
+    <string name="ankidialog_hint_sentence">文</string>
+    <string name="ankidialog_hint_word_meaning">単語の意味</string>
+    <string name="ankidialog_hint_sentence_meaning">文の意味</string>
+    <string name="ankidialog_cancel">キャンセル</string>
+
+    <!--Subtitle Translation Task-->
+    <string name="subtitle_task_failed_word">単語の意味：翻訳に失敗しました。インターネット接続をご確認ください。</string>
+    <string name="subtitle_task_failed_sentence">文の意味：翻訳に失敗しました。インターネット接続をご確認ください。</string>
+
+    <!--Tutorial-->
+    <string name="tutorial_subtitle_list_view">タップした箇所から再生します。長押しすると単語登録画面が表示されます。</string>
+    <string name="tutorial_video_dilay_controller">字幕を長押しすると、字幕タイミング調整ボタンが表示されます。</string>
+    <string name="tutorial_video_surface">ビデオをタップすると再生・一時停止、早送り、巻き戻りできます。</string>
+    <string name="button_next">次へ</string>
+    <string name="button_ok">OK</string>
+
+    <!--Video surface information-->
+    <string name="video_surface_info_play">再生</string>
+    <string name="video_surface_info_pause">一時停止</string>
+    <string name="video_surface_info_seek_fast_forward">シーク：+</string>
+    <string name="video_surface_info_seek_rewind">シーク：-</string>
+    <string name="video_surface_info_second_unit">秒</string>
+    <string name="video_surface_info_delay_controller_enable">字幕タイミング調整ボタンが表示されました。</string>
+    <string name="video_surface_info_delay_controller_disable">字幕タイミング調整ボタンが非表示になりました。</string>
+    <string name="video_surface_info_subtitle_delay">字幕の調整: </string>
+
+    <!--Media player controller-->
+    <string name="media_player_controller_open_file">他の動画ファイルを再生する。</string>
+
+    <!--Setting activity-->
+    <string name="activity_settings">設定</string>
+    <string name="language_connect">言葉は人と &lt;3 を繋げる。</string>
+
+    <!--Send Email-->
+    <string name="email_intent_title">メール送信</string>
+    <string name="email_subject">メールのタイトル</string>
+    <string name="email_content">フィードバックをお書きください。</string>
+</resources>

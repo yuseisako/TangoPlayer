@@ -1,0 +1,61 @@
+apply plugin: 'com.android.library'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'library'
+
+    publishedGroupId = 'com.nbsp'
+    libraryName = 'Material File Picker'
+    artifact = 'library'
+
+    libraryDescription = 'File picker library in material design'
+
+    siteUrl = 'https://github.com/nbsp-team/MaterialFilePicker'
+    gitUrl = 'https://github.com/nbsp-team/MaterialFilePicker'
+
+    libraryVersion = '1.8'
+
+    developerId = 'lukaville'
+    developerName = 'Nickolay Chameev'
+    developerEmail = 'lukaville@gmail.com'
+
+    licenseName = 'GNU GENERAL PUBLIC LICENSE Version 2'
+    licenseUrl = 'https://raw.githubusercontent.com/nbsp-team/MaterialFilePicker/master/LICENSE'
+    allLicenses = ["GNU-GPL-2.0"]
+}
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.minSdkVersion
+        versionCode rootProject.ext.filePickerLibraryVerionCode
+        versionName rootProject.ext.filePickerLibraryVerionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+}
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+
+repositories {
+    google()
+}

@@ -65,9 +65,9 @@ public class SettingsFragment extends PreferenceFragment {
                 String email = "profical" + "@" + "gmai.com";
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
                         "mailto",email, null));
-                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Subject");
-                emailIntent.putExtra(Intent.EXTRA_TEXT, "Please write your feedback.");
-                startActivity(Intent.createChooser(emailIntent, "Send email..."));
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.email_subject));
+                emailIntent.putExtra(Intent.EXTRA_TEXT, getResources().getString(R.string.email_content));
+                startActivity(Intent.createChooser(emailIntent, getResources().getString(R.string.email_intent_title)));
                 return true;
             }
         };
@@ -79,7 +79,7 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 if(clickCounter++ > 10){
-                    Toast.makeText(getActivity(), "Language connects people with <3", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getResources().getString(R.string.language_connect), Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }
@@ -99,7 +99,7 @@ public class SettingsFragment extends PreferenceFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        ((SettingsActivity)getActivity()).setActionBarTitle(getResources().getString(R.string.title_activity_settings));
+        ((SettingsActivity)getActivity()).setActionBarTitle(getResources().getString(R.string.activity_settings));
     }
 
     /**
@@ -148,10 +148,10 @@ public class SettingsFragment extends PreferenceFragment {
             }else if(title.compareTo(getResources().getString(R.string.android_constraint_layout)) == 0){
                 showLicense(getResources().getString(R.string.android_constraint_layout),
                         "http://tools.android.com", "Copyright 2018 Google", LICENSE_APACHE2);
-            }else if(title.compareTo(getResources().getString(R.string.nononsense_filepicker)) == 0){
-                showLicense(getResources().getString(R.string.nononsense_filepicker),
-                        "https://github.com/spacecowboy/NoNonsense-FilePicker",
-                        "Copyright 2018 spacecowboy", LICENSE_MOZILLA2);
+            }else if(title.compareTo(getResources().getString(R.string.MaterialFilePicker)) == 0){
+                showLicense(getResources().getString(R.string.MaterialFilePicker),
+                        "https://github.com/nbsp-team/MaterialFilePicker",
+                        "Copyright 2018 &nbsp;", LICENSE_APACHE2);
             }else if(title.compareTo(getResources().getString(R.string.juniversalchardet)) == 0){
                 showLicense(getResources().getString(R.string.juniversalchardet),
                         "https://code.google.com/archive/p/juniversalchardet/",

@@ -16,7 +16,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#00000000"
+    android:background="@android:color/transparent"
     android:orientation="vertical">
 
     <LinearLayout
@@ -26,35 +26,40 @@
         android:paddingTop="4dip"
         android:orientation="horizontal">
 
-        <ImageButton android:id="@+id/setting"
-            style="@style/MediaImageButton.Settings"/>
+        <ImageButton android:id="@+id/file"
+            style="@style/MediaImageButton.Folder"
+            android:contentDescription="@string/ImageButton_Folder" />
 
         <!--<ImageButton android:id="@+id/prev"-->
             <!--style="@android:style/MediaButton.Previous" />-->
 
         <ImageButton android:id="@+id/rew"
-            style="@style/MediaImageButton.Rewind" />
+            style="@style/MediaImageButton.Rewind"
+            android:contentDescription="@string/ImageButton_Rewind" />
 
         <!--<ImageButton android:id="@+id/pause"-->
             <!--style="@android:style/MediaButton.Play"-->
             <!--android:contentDescription="Pause" />-->
 
         <ImageButton android:id="@+id/playpause"
-            style="@style/MediaImageButton.Pause" />
+            style="@style/MediaImageButton.Pause"
+            android:contentDescription="@string/ImageButton_Play" />
 
         <!--<ImageButton android:id="@+id/ffwd"-->
             <!--style="@android:style/MediaButton.Ffwd"-->
             <!--android:contentDescription="FastForward" />-->
 
         <ImageButton android:id="@+id/ffwd"
-            style="@style/MediaImageButton.FastForward"/>
+            style="@style/MediaImageButton.FastForward"
+            android:contentDescription="@string/ImageButton_FastForward" />
 
         <!--<ImageButton android:id="@+id/next"-->
             <!--style="@android:style/MediaButton.Next" />-->
 
-        <ImageButton android:id="@+id/file"
-            style="@style/MediaImageButton.Folder"  />
 
+        <ImageButton android:id="@+id/setting"
+            style="@style/MediaImageButton.Settings"
+            android:contentDescription="@string/ImageButton_Setting" />
     </LinearLayout>
 
     <LinearLayout

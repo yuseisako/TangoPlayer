@@ -19,11 +19,14 @@ With this app, you only need just one tap to add it.
 - Tap on subtitle list view, then seek video ->done.
 - Add flash card dialog with translation -> done.
 - Change subtitle delay -> done.
-- Support API 21 -> done
-- Support Tablet -> done
-- Support horizontal orientation -> doing.
+- Support api 21 -> done
+- Support tablet -> done
+- Show "Watched" besides video file on file picker. -> doing
+- Add web search button on Anki dialog.
+- Button go to next or previous video.
 
-# Under consideration.
+# May or may not develop.
+- Support horizontal view.
 - Auto download subtitle.
 
 # Screenshot

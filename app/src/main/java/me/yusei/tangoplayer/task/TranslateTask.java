@@ -20,7 +20,7 @@ public class TranslateTask extends AsyncTask<String, String, String> {
         Translator translator = new Translator();
         String word = "";
         try {
-            word = translator.callUrlAndParseResult("en", params[0], params[1]);
+            word = translator.callUrlAndParseResult(params[0], params[1]);
         } catch (Exception e) {
             e.printStackTrace();
         }

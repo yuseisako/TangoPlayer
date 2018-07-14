@@ -6,20 +6,16 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.nononsenseapps.filepicker.Utils;
+import com.nbsp.materialfilepicker.MaterialFilePicker;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
-import java.io.File;
-import java.util.List;
-
-import me.yusei.tangoplayer.filepicker.FilteredFilePickerActivity;
+import java.util.regex.Pattern;
 
 public class StartActivity extends AppCompatActivity {
     private static final int FILE_CODE = 1;
@@ -38,12 +34,14 @@ public class StartActivity extends AppCompatActivity {
 
     private void startFilePickerActivity(){
         VideoPlayerConfig.setVideoPosition(this, 0);
-        Intent i = new Intent(this, FilteredFilePickerActivity.class);
-        i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-        i.putExtra(FilteredFilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
-        i.putExtra(FilteredFilePickerActivity.EXTRA_MODE, FilteredFilePickerActivity.MODE_FILE);
-        i.putExtra(FilteredFilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-        startActivityForResult(i, FILE_CODE);
+        new MaterialFilePicker()
+                .withActivity(this)
+                .withRequestCode(FILE_CODE)
+                //.withFilter(Pattern.compile(".*\\.avi"))
+                .withFilter(Pattern.compile(".*\\.(avi|flv|mp4|mkv|3gp|asf|m4v|m2v|mov|mpeg|mpg)$")) // Filtering files and directories by file name using regexp
+                .withFilterDirectories(false) // Set directories filterable (false by default)
+                .withHiddenFiles(false) // Show hidden files and folders
+                .start();
     }
 
     private void startVideoPlayerActivity(String filePath){
@@ -56,15 +54,9 @@ public class StartActivity extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == FILE_CODE && resultCode == AppCompatActivity.RESULT_OK) {
-            // Use the provided utility method to parse the result
-            List<Uri> files = Utils.getSelectedFilesFromResult(intent);
-//            for (Uri uri: files) {
-//                File file = Utils.getFileForUri(uri);
-//                // Do something with the result...
-//            }
-            File file = Utils.getFileForUri(files.get(0));
+            String filePath = intent.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
             VideoPlayerConfig.setVideoPosition(this, 0);
-            startVideoPlayerActivity(file.toString());
+            startVideoPlayerActivity(filePath);
         }else if(resultCode ==  RESULT_CANCELED){
             finish();
         }

@@ -10,7 +10,7 @@
         android:id="@+id/add_sentence"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/EditText_sentence"/>
+        android:hint="@string/ankidialog_hint_sentence"/>
 
     <com.nex3z.flowlayout.FlowLayout
         android:id="@+id/word_buttons"
@@ -36,7 +36,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="50dp"
-            android:hint="@string/EditText_word"/>
+            android:hint="@string/ankidialog_hint_word"/>
 
         <ImageButton
             android:id="@+id/translate"
@@ -45,7 +45,7 @@
             android:scaleType="fitXY"
             android:src="@drawable/translate"
             android:layout_alignParentEnd="true"
-            android:contentDescription="@string/ImageButton_Translate" />
+            android:contentDescription="@string/ankidialog_button_translate" />
 
     </RelativeLayout>
 
@@ -53,12 +53,12 @@
         android:id="@+id/add_word_meaning"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:hint="@string/EditText_word_meaning"/>
+        android:hint="@string/ankidialog_hint_word_meaning"/>
 
     <EditText
         android:id="@+id/add_sentence_meaning"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:hint="@string/EditText_sentence_meaning"/>
+        android:hint="@string/ankidialog_hint_sentence_meaning"/>
 
 </LinearLayout>

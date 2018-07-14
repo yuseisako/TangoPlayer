@@ -1,350 +1,71 @@
 <resources>
     <string name="app_name">Tango Player</string>
     <!--Error Message-->
-    <string name="error_msg_no_acccess_to_anki_db">No Access to AnkiDroid DB. Check AnkiDroid is allow to access the storage.</string>
-    <string name="error_msg_no_write_storage_permission">The permission to access your storage was NOT granted. Please tap [ALLOW].</string>
-    <string name="error_msg_no_write_anki_db_permission">The permission to access your AnkiDroid DB was NOT granted. Please tap [ALLOW].</string>
-    <string name="error_invalid_video_file">The Video file path is invalid. Choose another video file again.</string>
+    <string name="error_msg_no_acccess_to_anki_db">[E-1]: No Access to AnkiDroid DB. Check AnkiDroid is allow to access the storage.</string>
+    <string name="error_msg_no_write_storage_permission">[E-2]: The permission to access your storage was NOT granted. Please tap [ALLOW].</string>
+    <string name="error_msg_no_write_anki_db_permission">[E-3]: The permission to access your AnkiDroid DB was NOT granted. Please tap [ALLOW].</string>
+    <string name="error_msg_anki_not_installed">[E-4]: Failed to add card. Please install AnkiDroid First.</string>
+    <string name="error_msg_exception_create_player">[E-5]: Error creating player!</string>
+    <string name="error_msg_hardware_accelaration">[E-6]: Error with hardware acceleration.</string>
 
     <!--Warning Message-->
-    <string name="warning_msg_no_network">No Network. Put the translation manually.</string>
+    <string name="warn_msg_subtitle_not_found1">Subtitle file is NOT found.</string>
+    <string name="warn_msg_subtitle_not_found2">You need to prepare subtitle file, put it in the same folder as video file.</string>
 
     <!--Information Message-->
     <string name="info_msg_anki_card_is_added">The card was added.</string>
-
-    <!--ijkplayer-->
-    <string name="N_A">N/A</string>
-    <string name="close">Close</string>
-    <string name="exit">Exit</string>
-    <string name="sample">Sample</string>
-    <string name="recent">Recent</string>
-    <string name="settings">Settings</string>
-    <string name="tracks">Tracks</string>
-    <string name="toggle_player">Player</string>
-    <string name="toggle_render">Render</string>
-    <string name="toggle_ratio">Scale</string>
-    <string name="show_info">Info</string>
-    <string name="vdec">vdec</string>
-    <string name="fps">fps</string>
-    <string name="v_cache">v-cache</string>
-    <string name="a_cache">a-cache</string>
-    <string name="load_cost">load-cost</string>
-    <string name="seek_cost">seek_cost</string>
-    <string name="seek_load_cost">seek_load_cost</string>
-    <string name="tcp_speed">tcp_speed</string>
-    <string name="bit_rate">bit_rate</string>
-
-    <string name="media_information">Media Information</string>
-    <string name="mi_player">Player</string>
-    <string name="mi_media">Media</string>
-    <string name="mi_profile_level">Profile level</string>
-    <string name="mi_pixel_format">Pixel format</string>
-    <string name="mi_resolution">Resolution</string>
-    <string name="mi_length">Length</string>
-    <string name="mi_stream_fmt1">Stream #%d</string>
-    <string name="mi_type">Type</string>
-    <string name="mi_language">Language</string>
-    <string name="mi_codec">Codec</string>
-    <string name="mi_frame_rate">Frame rate</string>
-    <string name="mi_bit_rate">Bit rate</string>
-    <string name="mi_sample_rate">Sample rate</string>
-    <string name="mi_channels">Channels</string>
-    <string name="mi__selected_video_track">*</string>
-    <string name="mi__selected_audio_track">*</string>
-    <string name="mi__selected_subtitle_track">*</string>
-
-    <string name="TrackType_video">Video</string>
-    <string name="TrackType_audio">Audio</string>
-    <string name="TrackType_subtitle">Subtitle</string>
-    <string name="TrackType_timedtext">Timed text</string>
-    <string name="TrackType_metadata">Meta data</string>
-    <string name="TrackType_unknown">Unknown</string>
-
-    <string name="VideoView_error_text_invalid_progressive_playback">Invalid progressive playback</string>
-    <string name="VideoView_error_text_unknown">Unknown</string>
-    <string name="VideoView_error_button">OK</string>
-
-    <string name="VideoView_ar_aspect_fit_parent">Aspect / Fit parent</string>
-    <string name="VideoView_ar_aspect_fill_parent">Aspect / Fill parent</string>
-    <string name="VideoView_ar_aspect_wrap_content">Aspect / Wrap content</string>
-    <string name="VideoView_ar_match_parent">Free / Fill parent</string>
-    <string name="VideoView_ar_16_9_fit_parent">16:9 / Fit parent</string>
-    <string name="VideoView_ar_4_3_fit_parent">4:3 / Fit parent</string>
-
-    <string name="VideoView_render_none">Render: None</string>
-    <string name="VideoView_render_surface_view">Render: SurfaceView</string>
-    <string name="VideoView_render_texture_view">Render: TextureView</string>
-
-    <string name="VideoView_player_none">Player: None</string>
-    <string name="VideoView_player_AndroidMediaPlayer">Player: AndroidMediaPlayer</string>
-    <string name="VideoView_player_IjkMediaPlayer">Player: IjkMediaPlayer</string>
-    <string name="VideoView_player_IjkExoMediaPlayer">Player: IjkExoMediaPlayer</string>
 
     <!--Media Player ImageButton-->
     <string name="ImageButton_Play">Play video</string>
     <string name="ImageButton_Pause">Pause video</string>
     <string name="ImageButton_Rewind">Rewind video</string>
     <string name="ImageButton_FastForward">Fast forward video</string>
-    <string name="ImageButton_Previous">Previous forward video</string>
-    <string name="ImageButton_Next">Next video</string>
     <string name="ImageButton_Setting">Setting</string>
     <string name="ImageButton_Folder">Choose another video</string>
     <string name="ImageButton_SubtitleFastForward">Subtitle fast forward</string>
     <string name="ImageButton_SubtitleRewind">Subtitle rewind</string>
 
     <!--AnkiDialog-->
-    <string name="ImageButton_Translate">Translate</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="EditText_word">Word</string>
-    <string name="EditText_sentence">Sentence</string>
-    <string name="EditText_word_meaning">Word meaning</string>
-    <string name="EditText_sentence_meaning">Sentence meaning</string>
+    <string name="ankidialog_title">Add words to Anki</string>
+    <string name="ankidialog_add_card">Add this card</string>
+    <string name="ankidialog_button_translate">Translate</string>
+    <string name="ankidialog_hint_word">Word</string>
+    <string name="ankidialog_hint_sentence">Sentence</string>
+    <string name="ankidialog_hint_word_meaning">Word meaning</string>
+    <string name="ankidialog_hint_sentence_meaning">Sentence meaning</string>
+    <string name="ankidialog_cancel">Cancel</string>
 
-    <!-- Strings related to Settings -->
-    <string name="pref_translation_language_default">ja</string>
-    <string name="pref_deck_name_default">tango</string>
+    <!--Subtitle Translation Task-->
+    <string name="subtitle_task_failed_word">Word meaning: Translation failed! Check Internet.</string>
+    <string name="subtitle_task_failed_sentence">Sentence meaning: Translation failed! Check Internet.</string>
 
-    <array name="pref_translation_language">
-        <item>Afrikaans</item>
-        <item>Albanian</item>
-        <item>Amharic</item>
-        <item>Arabic</item>
-        <item>Armenian</item>
-        <item>Azeerbaijani</item>
-        <item>Basque</item>
-        <item>Belarusian</item>
-        <item>Bengali</item>
-        <item>Bosnian</item>
-        <item>Bulgarian</item>
-        <item>Catalan</item>
-        <item>Cebuano</item>
-        <item>Chinese (Simplified)</item>
-        <item>Chinese (Traditional)</item>
-        <item>Corsican</item>
-        <item>Croatian</item>
-        <item>Czech</item>
-        <item>Danish</item>
-        <item>Dutch</item>
-        <item>English</item>
-        <item>Esperanto</item>
-        <item>Estonian</item>
-        <item>Finnish</item>
-        <item>French</item>
-        <item>Frisian</item>
-        <item>Galician</item>
-        <item>Georgian</item>
-        <item>German</item>
-        <item>Greek</item>
-        <item>Gujarati</item>
-        <item>Haitian Creole</item>
-        <item>Hausa</item>
-        <item>Hawaiian</item>
-        <item>Hebrew</item>
-        <item>Hindi</item>
-        <item>Hmong</item>
-        <item>Hungarian</item>
-        <item>Icelandic</item>
-        <item>Igbo</item>
-        <item>Indonesian</item>
-        <item>Irish</item>
-        <item>Italian</item>
-        <item>Japanese</item>
-        <item>Javanese</item>
-        <item>Kannada</item>
-        <item>Kazakh</item>
-        <item>Khmer</item>
-        <item>Korean</item>
-        <item>Kurdish</item>
-        <item>Kyrgyz</item>
-        <item>Lao</item>
-        <item>Latin</item>
-        <item>Latvian</item>
-        <item>Lithuanian</item>
-        <item>Luxembourgish</item>
-        <item>Macedonian</item>
-        <item>Malagasy</item>
-        <item>Malay</item>
-        <item>Malayalam</item>
-        <item>Maltese</item>
-        <item>Maori</item>
-        <item>Marathi</item>
-        <item>Mongolian</item>
-        <item>Myanmar (Burmese)</item>
-        <item>Nepali</item>
-        <item>Norwegian</item>
-        <item>Nyanja (Chichewa)</item>
-        <item>Pashto</item>
-        <item>Persian</item>
-        <item>Polish</item>
-        <item>Portuguese (Portugal, Brazil)</item>
-        <item>Punjabi</item>
-        <item>Romanian</item>
-        <item>Russian</item>
-        <item>Samoan</item>
-        <item>Scots Gaelic</item>
-        <item>Serbian</item>
-        <item>Sesotho</item>
-        <item>Shona</item>
-        <item>Sindhi</item>
-        <item>Sinhala (Sinhalese)</item>
-        <item>Slovak</item>
-        <item>Slovenian</item>
-        <item>Somali</item>
-        <item>Spanish</item>
-        <item>Sundanese</item>
-        <item>Swahili</item>
-        <item>Swedish</item>
-        <item>Tagalog (Filipino)</item>
-        <item>Tajik</item>
-        <item>Tamil</item>
-        <item>Telugu</item>
-        <item>Thai</item>
-        <item>Turkish</item>
-        <item>Ukrainian</item>
-        <item>Urdu</item>
-        <item>Uzbek</item>
-        <item>Vietnamese</item>
-        <item>Welsh</item>
-        <item>Xhosa</item>
-        <item>Yiddish</item>
-        <item>Yoruba</item>
-        <item>Zulu</item>
-    </array>
+    <!--Tutorial-->
+    <string name="tutorial_subtitle_list_view">Lap to seek, long tap to show AnkiDroid dialog.</string>
+    <string name="tutorial_video_dilay_controller">Long tap on subtitle to show video delay controller.</string>
+    <string name="tutorial_video_surface">Tap on video to play/pause, fast forward, rewind.</string>
+    <string name="button_next">Next</string>
+    <string name="button_ok">OK</string>
 
-    <array name="pref_translation_language_code">
-        <item>af</item>
-        <item>sq</item>
-        <item>am</item>
-        <item>ar</item>
-        <item>hy</item>
-        <item>az</item>
-        <item>eu</item>
-        <item>be</item>
-        <item>bn</item>
-        <item>bs</item>
-        <item>bg</item>
-        <item>ca</item>
-        <item>ceb</item>
-        <item>zh-CN</item>
-        <item>zh-TW</item>
-        <item>co</item>
-        <item>hr</item>
-        <item>cs</item>
-        <item>da</item>
-        <item>nl</item>
-        <item>en</item>
-        <item>eo</item>
-        <item>et</item>
-        <item>fi</item>
-        <item>fr</item>
-        <item>fy</item>
-        <item>gl</item>
-        <item>ka</item>
-        <item>de</item>
-        <item>el</item>
-        <item>gu</item>
-        <item>ht</item>
-        <item>ha</item>
-        <item>haw</item>
-        <item>iw</item>
-        <item>hi</item>
-        <item>hmn</item>
-        <item>hu</item>
-        <item>is</item>
-        <item>ig</item>
-        <item>id</item>
-        <item>ga</item>
-        <item>it</item>
-        <item>ja</item>
-        <item>jw</item>
-        <item>kn</item>
-        <item>kk</item>
-        <item>km</item>
-        <item>ko</item>
-        <item>ku</item>
-        <item>ky</item>
-        <item>lo</item>
-        <item>la</item>
-        <item>lv</item>
-        <item>lt</item>
-        <item>lb</item>
-        <item>mk</item>
-        <item>mg</item>
-        <item>ms</item>
-        <item>ml</item>
-        <item>mt</item>
-        <item>mi</item>
-        <item>mr</item>
-        <item>mn</item>
-        <item>my</item>
-        <item>ne</item>
-        <item>no</item>
-        <item>ny</item>
-        <item>ps</item>
-        <item>fa</item>
-        <item>pl</item>
-        <item>pt</item>
-        <item>pa</item>
-        <item>ro</item>
-        <item>ru</item>
-        <item>sm</item>
-        <item>gd</item>
-        <item>sr</item>
-        <item>st</item>
-        <item>sn</item>
-        <item>sd</item>
-        <item>si</item>
-        <item>sk</item>
-        <item>sl</item>
-        <item>so</item>
-        <item>es</item>
-        <item>su</item>
-        <item>sw</item>
-        <item>sv</item>
-        <item>tl</item>
-        <item>tg</item>
-        <item>ta</item>
-        <item>te</item>
-        <item>th</item>
-        <item>tr</item>
-        <item>uk</item>
-        <item>ur</item>
-        <item>uz</item>
-        <item>vi</item>
-        <item>cy</item>
-        <item>xh</item>
-        <item>yi</item>
-        <item>yo</item>
-        <item>zu</item>
-    </array>
-    <array name="pref_deck_name">
-        <item>Tango Player</item>
-        <item>Video file name</item>
-    </array>
+    <!--Video surface information-->
+    <string name="video_surface_info_play">Play</string>
+    <string name="video_surface_info_pause">Pause</string>
+    <string name="video_surface_info_seek_fast_forward">Seek: +</string>
+    <string name="video_surface_info_seek_rewind">Seek: -</string>
+    <string name="video_surface_info_second_unit">s</string>
+    <string name="video_surface_info_delay_controller_enable">Subtitle delay controller is enable.</string>
+    <string name="video_surface_info_delay_controller_disable">Subtitle delay controller is disable.</string>
+    <string name="video_surface_info_subtitle_delay">Subtitle delay: </string>
 
-    <array name="pref_deck_name_code">
-        <item>tango</item>
-        <item>video</item>
-    </array>
+    <!--Media player controller-->
+    <string name="media_player_controller_open_file">Open another video file.</string>
 
-    <string name="key_list_translation_language">KeyListTranslationLanguage</string>
-    <string name="key_list_deck_name">KeyListDeckName</string>
-    <string name="key_license">KeyLicense</string>
-    <string name="key_send_feedback">KeySendFeedback</string>
-    <string name="key_version">KeyVersion</string>
+    <!--Setting activity-->
+    <string name="activity_settings">Settings</string>
+    <string name="language_connect">Language connects people with &lt;3</string>
 
-    <!-- License -->
-    <string name="pref_licenses">Licenses</string>
-    <string name="flowlayout">FlowLayout</string>
-    <string name="subtitle_converter">Subtitle Converter</string>
-    <string name="material_design_icon">Material Design (icon)</string>
-    <string name="android_support_library">Android Support Library</string>
-    <string name="android_constraint_layout">Android ConstraintLayout</string>
-    <string name="nononsense_filepicker">NoNonsense-FilePicker</string>
-    <string name="juniversalchardet">juniversalchardet</string>
-    <string name="licenses_dialog">LicensesDialog</string>
-    <string name="json_in_java">JSON In Java</string>
-    <string name="ankidroid_api">AnkiDroid API</string>
-    <string name="lib_vlc">libVLC</string>
-    <string name="easyfeedback">EasyFeedback</string>
+    <!--Send Email-->
+    <string name="email_intent_title">Send email</string>
+    <string name="email_subject">Subject</string>
+    <string name="email_content">Please write your feedback.</string>
 </resources>
+

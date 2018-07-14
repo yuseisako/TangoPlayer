@@ -11,11 +11,11 @@ import java.net.URLEncoder;
 class Translator {
     static final int HTTP_CONNECTION_TIME_OUT = 1000;
 
-    String callUrlAndParseResult(String langFrom, String langTo, String word) throws Exception {
+    String callUrlAndParseResult(String langTo, String word) throws Exception {
 
         String url = "https://translate.googleapis.com/translate_a/single?"+
                 "client=gtx&"+
-                "sl=" + langFrom +
+                "sl=auto" +
                 "&tl=" + langTo +
                 "&dt=t&q=" + URLEncoder.encode(word, "UTF-8");
 

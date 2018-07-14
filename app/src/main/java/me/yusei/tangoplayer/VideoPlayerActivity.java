@@ -43,7 +43,6 @@ import org.videolan.libvlc.MediaPlayer;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -109,6 +108,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
+    private static final String[] SUPPORTED_SUBTITLE_EXTENSION = {"srt", "ass", "scc", "ttml"};
 
     /* ===============================================================
        Application Lifecycle
@@ -189,15 +189,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     editTextWordMeaning.setText(result);
 
                     if(hint.contains("Word")){
-                        editTextWordMeaning.setHint("Word meaning");
+                        editTextWordMeaning.setHint(getResources().getString(R.string.ankidialog_hint_word_meaning));
                     }else {
-                        editTextWordMeaning.setHint("Sentence meaning");
+                        editTextWordMeaning.setHint(getResources().getString(R.string.ankidialog_hint_sentence_meaning));
                     }
                 }else{
                     if(hint.contains("Word")){
-                        editTextWordMeaning.setHint("Word meaning: Translation failed! Check Internet.");
+                        editTextWordMeaning.setHint(getResources().getString(R.string.subtitle_task_failed_word));
                     }else {
-                        editTextWordMeaning.setHint("Sentence meaning: Translation failed! Check Internet.");
+                        editTextWordMeaning.setHint(getResources().getString(R.string.subtitle_task_failed_sentence));
                     }
                 }
             }
@@ -273,7 +273,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         settingButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                Toast.makeText(getBaseContext(), "Setting", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), getResources().getString(R.string.activity_settings), Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -284,7 +284,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void onClick(View view) {
                 if(mMediaPlayer.getTime() - REWIND_FFWD_UNIT > 0) {
                     mMediaPlayer.setTime(mMediaPlayer.getTime() - REWIND_FFWD_UNIT);
-                    showVideoSurfaceInfo("Seek: -5s");
+                    showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_seek_rewind) +
+                            REWIND_FFWD_UNIT/1000 + getResources().getString(R.string.video_surface_info_second_unit));
                 }
             }
         });
@@ -303,7 +304,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void onClick(View view) {
                 if(mMediaPlayer.getTime() + REWIND_FFWD_UNIT < mMediaPlayer.getLength()){
                     mMediaPlayer.setTime(mMediaPlayer.getTime() + REWIND_FFWD_UNIT);
-                    showVideoSurfaceInfo("Seek: +5s");
+                    showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_seek_fast_forward) +
+                            REWIND_FFWD_UNIT/1000 + getResources().getString(R.string.video_surface_info_second_unit));
                 }
             }
         });
@@ -322,7 +324,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         fileButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                Toast.makeText(getBaseContext(), "Open another video file.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), getResources().getString(R.string.media_player_controller_open_file), Toast.LENGTH_SHORT).show();
                 return true;
             }
         });
@@ -333,7 +335,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void onClick(View view) {
                 subtitleDelay = subtitleDelay + SUBTITLE_DELAY_UNIT;
                 showSubtitleDelayController();
-                showVideoSurfaceInfo("Subtitle delay: " + ((float)subtitleDelay)/1000 + "s");
+                showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_subtitle_delay) + ((float)subtitleDelay)/1000 + "s");
             }
         });
 
@@ -343,7 +345,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void onClick(View view) {
                 subtitleDelay = subtitleDelay - SUBTITLE_DELAY_UNIT;
                 showSubtitleDelayController();
-                showVideoSurfaceInfo("Subtitle delay: " + ((float)subtitleDelay)/1000 + "s");
+                showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_subtitle_delay) + ((float)subtitleDelay)/1000 + "s");
             }
         });
 
@@ -359,11 +361,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public boolean onLongClick(View view) {
                 isShowSubtitleDelayController = !isShowSubtitleDelayController;
                 if(isShowSubtitleDelayController){
-                    showVideoSurfaceInfo("Subtitle delay controller is enable.");
                     showSubtitleDelayController();
+                    showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_delay_controller_enable));
                 }else {
-                    showVideoSurfaceInfo("Subtitle delay controller is disable.");
                     hideSubtitleDelayController(0);
+                    showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_delay_controller_disable));
                 }
                 return true;
             }
@@ -380,11 +382,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mMediaPlayer.isPlaying()) {
             playPauseButton.setImageResource(R.drawable.ic_media_play);
             mMediaPlayer.pause();
-            showVideoSurfaceInfo("Pause");
+            showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_pause));
         } else {
             playPauseButton.setImageResource(R.drawable.ic_media_pause);
             mMediaPlayer.play();
-            showVideoSurfaceInfo("Play");
+            showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_play));
         }
     }
 
@@ -396,7 +398,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(!mMediaPlayer.isPlaying()){
             playPauseButton.setImageResource(R.drawable.ic_media_pause);
             mMediaPlayer.play();
-            showVideoSurfaceInfo("Play");
+            showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_play));
         }
     }
 
@@ -408,7 +410,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(mMediaPlayer.isPlaying()){
             playPauseButton.setImageResource(R.drawable.ic_media_play);
             mMediaPlayer.pause();
-            showVideoSurfaceInfo("Pause");
+            showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_pause));
         }
     }
 
@@ -586,18 +588,21 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public String removeSubtitleTag(@NonNull String subtitle){
         //srt format tags are according to https://www.visualsubsync.org/help/srt
         if(subtitle.contains("<b>") && subtitle.contains("</b>")){
-            subtitle = subtitle.replace("<b>", "").replace("</b>", "");
+            subtitle = subtitle.replaceAll("<b>", "").replaceAll("</b>", "");
         }
         if(subtitle.contains("<i>") && subtitle.contains("</i>")){
-            subtitle = subtitle.replace("<i>", "").replace("</i>", "");
+            subtitle = subtitle.replaceAll("<i>", "").replaceAll("</i>", "");
         }
         if(subtitle.contains("<u>") && subtitle.contains("</u>")){
-            subtitle = subtitle.replace("<u>", "").replace("</u>", "");
+            subtitle = subtitle.replaceAll("<u>", "").replaceAll("</u>", "");
         }
         if(subtitle.contains("<font color=") && subtitle.contains("</font>")){
-            subtitle = subtitle.replace("<font color=\"#??????\">", "").replace("</font>","").
-                    replace("<font color=\"red\">", "").replace("<font color=\"green\">", "").
-                    replace("<font color=\"blue\">", "");
+            subtitle = subtitle.replaceAll("<font color=\"#......\">", "").
+                    replaceAll("</font>","").
+                    replaceAll("<font color=#......>","").
+                    replaceAll("<font color=\"red\">", "").
+                    replaceAll("<font color=\"green\">", "").
+                    replaceAll("<font color=\"blue\">", "");
         }
         return subtitle;
     }
@@ -682,13 +687,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 (ViewGroup) findViewById(R.id.show_anki_dialog));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add words to Anki");
-        builder.setPositiveButton("Add this card", new DialogInterface.OnClickListener() {
+        builder.setTitle(getResources().getString(R.string.ankidialog_title));
+        builder.setPositiveButton(getResources().getString(R.string.ankidialog_add_card), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Boolean isAnkiDroidInstalled = ankiDroidInstalledOrNot();
                 if( ! isAnkiDroidInstalled){
-                    Toast.makeText(getApplicationContext(), "Failed to add card. Please install AnkiDroid First.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_msg_anki_not_installed), Toast.LENGTH_LONG).show();
                 }else{
                     String word  = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
                     String wordMeaning  = ((EditText)(layout.findViewById(R.id.add_word_meaning))).getText().toString();
@@ -722,7 +727,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(getResources().getString(R.string.ankidialog_cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 updatePlay();
@@ -859,13 +864,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         sequence.setConfig(config);
 
         sequence.addSequenceItem(listView,
-                "Lap to scroll, long tap to show AnkiDroid dialog.", "GOT IT");
+                getResources().getString(R.string.tutorial_subtitle_list_view), getResources().getString(R.string.button_next));
 
         sequence.addSequenceItem(subtitleTextView,
-                "Long tap to show video delay controller.", "GOT IT");
+                getResources().getString(R.string.tutorial_video_dilay_controller), getResources().getString(R.string.button_next));
 
         sequence.addSequenceItem(videoSurface,
-                "Tap to play/pause, fast forward, rewind.", "GOT IT");
+                getResources().getString(R.string.tutorial_video_surface), getResources().getString(R.string.button_ok));
 
         sequence.start();
     }
@@ -929,9 +934,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         //init UI
         mSurfaceView = findViewById(R.id.video_view);
         mSurfaceHolder = mSurfaceView.getHolder();
-        if(mSurfaceView == null){
-            Toast.makeText(this, "mSurfaceView is null", Toast.LENGTH_SHORT).show();
-        }
 
         Boolean isSeek = false;
         String videoFilePath = VideoPlayerConfig.getVideoFilePath(this);
@@ -954,8 +956,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             ListView listView = findViewById(R.id.subtitleListView);
             listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
             ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.subtitles_col);
-            arrayAdapter.add("Subtitle file is NOT found.");
-            arrayAdapter.add("You need to prepare subtitle file, put it in the same folder as video file.");
+            arrayAdapter.add(getResources().getString(R.string.warn_msg_subtitle_not_found1));
+            arrayAdapter.add(getResources().getString(R.string.warn_msg_subtitle_not_found2));
             listView.setAdapter(arrayAdapter);
         }
         showTutorial();
@@ -996,8 +998,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mSurfaceView = findViewById(R.id.video_view);
 
             Media m = new Media(libvlc, Uri.parse("file://" + media));
+            m.parse();
+            //TODO wait until parse finished, then check if media is parsed
+            if(m.getDuration() <= 0){
+                m.release();
+                return false;
+            }
             m.setHWDecoderEnabled(true, false);
             mMediaPlayer.setMedia(m);
+            m.release();
 
             if(ankiDialog == null || !ankiDialog.isShowing()){
                 mMediaPlayer.play();
@@ -1029,7 +1038,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 handler.post(r);
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Error creating player!" + e.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getResources().getString(R.string.error_msg_exception_create_player) + e.toString(), Toast.LENGTH_LONG).show();
             return false;
         }
 
@@ -1097,17 +1106,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      * @return return true if the file is exist. return false if the file is not exist.
      */
     private boolean isSubtitleFileExist(@NonNull String filePath) {
-        //null check
-        Utility.nonNull(filePath);
-
-        List<String> subtitleSupportExtensionList = new ArrayList<>(Arrays.asList("srt", "ass", "scc", "ttml"));
         int numExtension = filePath.lastIndexOf(".");
         if (numExtension < 0) {
             return false;
         }
         //Remove extension
         filePath = filePath.substring(0, numExtension + 1);
-        for(String subtitleSupportExtension : subtitleSupportExtensionList){
+        for(String subtitleSupportExtension : SUPPORTED_SUBTITLE_EXTENSION){
             //extension removed filepath + subtitle extension = subtitleFilePath
             String subtitleFilePath = filePath + subtitleSupportExtension;
             File subtitleFile = new File(subtitleFilePath);
@@ -1168,7 +1173,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         // Handle errors with hardware acceleration
         Utility.errorLog("Error with hardware acceleration");
         this.releasePlayer();
-        Toast.makeText(this, "Error with hardware acceleration", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getResources().getString(R.string.error_msg_hardware_accelaration), Toast.LENGTH_LONG).show();
     }
 
     private static class MyPlayerListener implements MediaPlayer.EventListener {
@@ -1186,7 +1191,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     player.releasePlayer();
                     break;
                 case MediaPlayer.Event.EncounteredError:
-                    //player.releasePlayer();
+                    Utility.errorLog("EncounteredError Event at MediaPlayer Listener");
+                    player.releasePlayer();
                     break;
                 case MediaPlayer.Event.Playing:
                 case MediaPlayer.Event.Paused:
