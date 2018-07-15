@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -708,7 +709,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
          builder.setNegativeButton(getResources().getString(R.string.ankidialog_cancel), new DialogInterface.OnClickListener() {
              @Override
              public void onClick(DialogInterface dialogInterface, int i) {
-                 finish();
                  updatePlay();
              }
          });
@@ -1227,6 +1227,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         };
         File[] currentDirFiles = new File(parentDir).listFiles(filter);
+        Arrays.sort(currentDirFiles);
 
         for(int i=0; i<currentDirFiles.length; i++){
             File currentFile = currentDirFiles[i];
