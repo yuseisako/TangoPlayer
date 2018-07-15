@@ -21,8 +21,8 @@ With this app, you only need just one tap to add it.
 - Change subtitle delay -> done.
 - Support api 21 -> done
 - Support tablet -> done
-- Show "Watched" besides video file on file picker. -> doing
-- Add web search button on Anki dialog.
+- ~~Show "Watched" besides video file on file picker.~~  Make file name pale for the video you watched.-> done
+- Add web search button on Anki dialog. -> doing
 - Button go to next or previous video.
 
 # May or may not develop.

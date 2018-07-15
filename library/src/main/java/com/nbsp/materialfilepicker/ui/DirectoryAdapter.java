@@ -1,6 +1,7 @@
 package com.nbsp.materialfilepicker.ui;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import com.nbsp.materialfilepicker.R;
 import com.nbsp.materialfilepicker.utils.FileTypeUtils;
+import com.nbsp.materialfilepicker.utils.FileUtils;
 
 import java.io.File;
 import java.util.List;
@@ -74,6 +76,10 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Dire
         holder.mFileImage.setImageResource(fileType.getIcon());
         holder.mFileSubtitle.setText(fileType.getDescription());
         holder.mFileTitle.setText(currentFile.getName());
+        //TODO:
+        if(FileUtils.isAccessedVideoFilePath(holder.itemView.getContext(), currentFile.getAbsolutePath())){
+            holder.mFileTitle.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.accessed_file_title_color));
+        }
     }
 
     @Override

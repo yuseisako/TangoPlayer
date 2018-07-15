@@ -6,9 +6,12 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class VideoPlayerConfig {
     private static final String VIDEO_FILE_PATH = "VIDEO_FILE_PATH";
+    private static final String ACCESSED_VIDEO_FILE_PATH = "ACCESSED_VIDEO_FILE_PATH";
     private static final String SUBTITLE_FILE_PATH = "SUBTITLE_FILE_PATH";
     private static final String VIDEO_DELAY = "VIDEO_DELAY";
     private static final String VIDEO_DURATION = "VIDEO_DURATION";
@@ -62,6 +65,21 @@ public class VideoPlayerConfig {
         editor.apply();
     }
 
+    static Set<String> getAccessedVideoFilePath(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getStringSet(ACCESSED_VIDEO_FILE_PATH, new HashSet<String>());
+    }
+
+    static void setAccessedVideoFilePath(Context context, String mFilePath){
+        Set<String> mFilePaths = getAccessedVideoFilePath(context);
+        mFilePaths.add(mFilePath);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putStringSet(ACCESSED_VIDEO_FILE_PATH, mFilePaths);
+        editor.apply();
+    }
+
+
     /**
      * get subtitles file path from SP.
      * @return subtitles filePath or null if nothing.
@@ -78,7 +96,7 @@ public class VideoPlayerConfig {
     }
 
     /**
-     * set video file path to SP
+     * set subtitle file path to SP
      * @param mFilePath video file
      */
     static void setSubtitleFilePath(Context context, String mFilePath) {

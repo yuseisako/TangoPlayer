@@ -6,6 +6,8 @@
 
     <color name="empty_directory_hint">#c7c7c7</color>
 
+    <color name="accessed_file_title_color">#32000000</color>
+
     <color name="compatibility_pressed_color">#1a000000</color>
     <color name="compatibility_focus_color">#48000000</color>
     <color name="transparent">#00000000</color>

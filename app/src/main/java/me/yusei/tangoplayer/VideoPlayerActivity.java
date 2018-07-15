@@ -943,6 +943,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         if(createPlayer(filePath, isSeek)){
             VideoPlayerConfig.setVideoFilePath(this, filePath);
+            VideoPlayerConfig.setAccessedVideoFilePath(getBaseContext(), filePath);
         }else {
             return false;
         }
