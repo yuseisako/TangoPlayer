@@ -35,17 +35,30 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="50dp"
+            android:layout_marginEnd="100dp"
             android:hint="@string/ankidialog_hint_word"/>
 
-        <ImageButton
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true">
+
+            <ImageButton
+            android:id="@+id/search"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/searching"
+            android:contentDescription="@string/ankidialog_button_search" />
+
+            <ImageButton
             android:id="@+id/translate"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:scaleType="fitXY"
             android:src="@drawable/translate"
-            android:layout_alignParentEnd="true"
             android:contentDescription="@string/ankidialog_button_translate" />
+        </LinearLayout>
 
     </RelativeLayout>
 

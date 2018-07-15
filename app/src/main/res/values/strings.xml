@@ -11,6 +11,7 @@
     <!--Warning Message-->
     <string name="warn_msg_subtitle_not_found1">Subtitle file is NOT found.</string>
     <string name="warn_msg_subtitle_not_found2">You need to prepare subtitle file, put it in the same folder as video file.</string>
+    <string name="warn_msg_empty_input">Please fill this input form.</string>
 
     <!--Information Message-->
     <string name="info_msg_anki_card_is_added">The card was added.</string>
@@ -29,6 +30,7 @@
     <string name="ankidialog_title">Add words to Anki</string>
     <string name="ankidialog_add_card">Add this card</string>
     <string name="ankidialog_button_translate">Translate</string>
+    <string name="ankidialog_button_search">Search on the Web</string>
     <string name="ankidialog_hint_word">Word</string>
     <string name="ankidialog_hint_sentence">Sentence</string>
     <string name="ankidialog_hint_word_meaning">Word meaning</string>
@@ -67,5 +69,6 @@
     <string name="email_intent_title">Send email</string>
     <string name="email_subject">Subject</string>
     <string name="email_content">Please write your feedback.</string>
+
 </resources>
 

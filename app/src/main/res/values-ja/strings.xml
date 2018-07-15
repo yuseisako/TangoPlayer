@@ -12,6 +12,7 @@
     <!--Warning Message-->
     <string name="warn_msg_subtitle_not_found1">字幕ファイルがみつかりませんでした。</string>
     <string name="warn_msg_subtitle_not_found2">動画ファイルと同名の字幕ファイルを用意してください。</string>
+    <string name="warn_msg_empty_input">この欄に入力してください</string>
 
     <!--Information Message-->
     <string name="info_msg_anki_card_is_added">カードを追加しました。</string>
@@ -30,6 +31,7 @@
     <string name="ankidialog_title">AnkiDroidに単語カードを追加</string>
     <string name="ankidialog_add_card">カード追加</string>
     <string name="ankidialog_button_translate">翻訳</string>
+    <string name="ankidialog_button_search">Web検索</string>
     <string name="ankidialog_hint_word">単語</string>
     <string name="ankidialog_hint_sentence">文</string>
     <string name="ankidialog_hint_word_meaning">単語の意味</string>

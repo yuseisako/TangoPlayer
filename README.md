@@ -16,14 +16,14 @@ With this app, you only need just one tap to add it.
 # Development status
 - Create video player ->done
 - Auto scroll subtitle view ->done
-- Tap on subtitle list view, then seek video ->done.
-- Add flash card dialog with translation -> done.
-- Change subtitle delay -> done.
+- Tap on subtitle list view, then seek video ->done
+- Add flash card dialog with translation -> done
+- Change subtitle delay -> done
 - Support api 21 -> done
 - Support tablet -> done
-- ~~Show "Watched" besides video file on file picker.~~  Make file name pale for the video you watched.-> done
-- Add web search button on Anki dialog. -> doing
-- Button go to next or previous video.
+- ~~Show "Watched" besides video file on file picker.~~  Make file name pale for the video you watched. -> done
+- Add web search button on Anki dialog. -> done
+- Button go to next or previous video. -> doing
 
 # May or may not develop.
 - Support horizontal view.

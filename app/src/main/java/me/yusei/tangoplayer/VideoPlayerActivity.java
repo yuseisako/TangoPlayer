@@ -2,6 +2,7 @@ package me.yusei.tangoplayer;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -677,7 +678,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
       Anki Dialog
      ============================ */
 
-    private void showAnkiDialog(@NonNull  String sentence){
+    private void showAnkiDialog(@NonNull  final String sentence){
         if(sentence.isEmpty()){
             return;
         }
@@ -691,39 +692,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         builder.setPositiveButton(getResources().getString(R.string.ankidialog_add_card), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Boolean isAnkiDroidInstalled = ankiDroidInstalledOrNot();
-                if( ! isAnkiDroidInstalled){
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_msg_anki_not_installed), Toast.LENGTH_LONG).show();
-                }else{
-                    String word  = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
-                    String wordMeaning  = ((EditText)(layout.findViewById(R.id.add_word_meaning))).getText().toString();
-                    String sentence = ((TextView) layout.findViewById(R.id.add_sentence)).getText().toString();
-                    String sentenceMeaning = ((EditText)(layout.findViewById(R.id.add_sentence_meaning))).getText().toString();
-
-                    if(!word.isEmpty() && !wordMeaning.isEmpty()) {
-                        // Add all data using AnkiDroid provider
-                        List<Map<String, String>> cardContentsList = new ArrayList<>();
-                        Map<String, String> cardContents = new HashMap<>();
-                        cardContents.put(AnkiDroidController.FIELDS[0], word);
-                        cardContents.put(AnkiDroidController.FIELDS[1], wordMeaning);
-                        cardContents.put(AnkiDroidController.FIELDS[2], sentence);
-                        cardContents.put(AnkiDroidController.FIELDS[3], sentenceMeaning);
-                        cardContentsList.add(cardContents);
-
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                        String deckName = sharedPreferences.getString(getResources().getString(R.string.key_list_deck_name), getResources().getString(R.string.pref_deck_name_default));
-                        if(deckName.equals(getResources().getString(R.string.pref_deck_name_default))){
-                            String videoFileName = VideoPlayerConfig.getVideoFileName(getApplicationContext());
-                            if(videoFileName != null){
-                                deckName = videoFileName.substring(0, videoFileName.lastIndexOf("."));
-                            }
-                        }else {
-                            deckName = "Tango Player";
-                        }
-                        mAnkiDroidController.addCardsToAnkiDroid(deckName, cardContentsList, getTranslationLanguage());
-                    }
-                }
-                updatePlay();
+                //Do nothing here because we override this button later to change the close behaviour.
+                //However, we still need this because on older versions of Android unless we
+                //pass a handler the button doesn't get instantiated
             }
         });
 
@@ -744,23 +715,90 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         builder.setView(layout);
         ankiDialog = builder.create();
         ankiDialog.show();
+        ankiDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Boolean isAnkiDroidInstalled = ankiDroidInstalledOrNot();
+                if( ! isAnkiDroidInstalled){
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_msg_anki_not_installed), Toast.LENGTH_LONG).show();
+                    ankiDialog.dismiss();
+                    updatePlay();
+                }else{
+                    EditText wordEditText = layout.findViewById(R.id.add_word);
+                    EditText wordMeaningEditText = layout.findViewById(R.id.add_word_meaning);
+                    EditText sentenceMeaningEditText = layout.findViewById(R.id.add_sentence_meaning);
+
+                    String word  = wordEditText.getText().toString();
+                    String wordMeaning  = wordMeaningEditText.getText().toString();
+                    String sentenceMeaning = sentenceMeaningEditText.getText().toString();
+
+                    if(!word.isEmpty() && !wordMeaning.isEmpty() && !sentenceMeaning.isEmpty()) {
+                        // Add all data using AnkiDroid provider
+                        List<Map<String, String>> cardContentsList = new ArrayList<>();
+                        Map<String, String> cardContents = new HashMap<>();
+                        cardContents.put(AnkiDroidController.FIELDS[0], word);
+                        cardContents.put(AnkiDroidController.FIELDS[1], wordMeaning);
+                        cardContents.put(AnkiDroidController.FIELDS[2], sentence);
+                        cardContents.put(AnkiDroidController.FIELDS[3], sentenceMeaning);
+                        cardContentsList.add(cardContents);
+
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        String deckName = sharedPreferences.getString(getResources().getString(R.string.key_list_deck_name), getResources().getString(R.string.pref_deck_name_default));
+                        if(deckName.equals(getResources().getString(R.string.pref_deck_name_default))){
+                            String videoFileName = VideoPlayerConfig.getVideoFileName(getApplicationContext());
+                            if(videoFileName != null){
+                                deckName = videoFileName.substring(0, videoFileName.lastIndexOf("."));
+                            }
+                        }else {
+                            deckName = "Tango Player";
+                        }
+                        mAnkiDroidController.addCardsToAnkiDroid(deckName, cardContentsList, getTranslationLanguage());
+                        ankiDialog.dismiss();
+                        updatePlay();
+                    }else{
+                        if(word.isEmpty())
+                            wordEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
+                        if(wordMeaning.isEmpty())
+                            wordMeaningEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
+                        if(sentenceMeaning.isEmpty())
+                            sentenceMeaningEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
+                    }
+                }
+            }
+        });
 
         ImageButton translateButton = layout.findViewById(R.id.translate);
         translateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    String word  = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
-                    EditText editTextWordMeaning = layout.findViewById(R.id.add_word_meaning);
+                EditText wordEditText = layout.findViewById(R.id.add_word);
+                String word  = wordEditText.getText().toString();
 
-                    String sentence = ((TextView) layout.findViewById(R.id.add_sentence)).getText().toString();
-                    EditText editTextSentenceMeaning = layout.findViewById(R.id.add_sentence_meaning);
+                EditText editTextWordMeaning = layout.findViewById(R.id.add_word_meaning);
 
-                    if(!word.isEmpty()){
-                        startTranslateTask(editTextWordMeaning, word);
-                        startTranslateTask(editTextSentenceMeaning, sentence);
-                    }
+                String sentence = ((TextView) layout.findViewById(R.id.add_sentence)).getText().toString();
+                EditText editTextSentenceMeaning = layout.findViewById(R.id.add_sentence_meaning);
+
+                if(!word.isEmpty()){
+                    startTranslateTask(editTextWordMeaning, word);
+                    startTranslateTask(editTextSentenceMeaning, sentence);
+                }else{
+                    wordEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
+                }
             }
         });
+
+        ImageButton searchButton = layout.findViewById(R.id.search);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String word = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
+                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                intent.putExtra(SearchManager.QUERY, word);
+                startActivity(intent);
+            }
+        });
+
         TextView sentenceTextView = layout.findViewById(R.id.add_sentence);
         sentenceTextView.setText(sentence);
 
