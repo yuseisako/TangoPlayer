@@ -31,4 +31,4 @@ With this app, you only need just one tap to add it.
 
 # Screenshot
 - Long tap to show "Add words to AnkiDroid" dialog.
-![Screeenshot](/screenshot.png)
+![Screeenshots](/screenshots.png)
