@@ -21,10 +21,17 @@
     <string name="ImageButton_Pause">Pause video</string>
     <string name="ImageButton_Rewind">Rewind video</string>
     <string name="ImageButton_FastForward">Fast forward video</string>
+    <string name="ImageButton_Next">Next video</string>
+    <string name="ImageButton_Previous">Previous video</string>
     <string name="ImageButton_Setting">Setting</string>
     <string name="ImageButton_Folder">Choose another video</string>
     <string name="ImageButton_SubtitleFastForward">Subtitle fast forward</string>
     <string name="ImageButton_SubtitleRewind">Subtitle rewind</string>
+
+    <!--Play Next/Previous Video Dialog-->
+    <string name="play_next_prev_dialog_title_next">Play next video</string>
+    <string name="play_next_prev_dialog_title_prev">Play previous video</string>
+    <string name="play_next_prev_dialog_msg">Would you like to play following video?</string>
 
     <!--AnkiDialog-->
     <string name="ankidialog_title">Add words to Anki</string>

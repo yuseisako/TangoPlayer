@@ -19,8 +19,8 @@
 
     <style name="MediaImageButton">
         <item name="android:background">@null</item>
-        <item name="android:layout_width">54dip</item>
-        <item name="android:layout_height">44dip</item>
+        <item name="android:layout_width">50dip</item>
+        <item name="android:layout_height">40dip</item>
         <item name="android:paddingLeft">10dip</item>
         <item name="android:paddingRight">10dip</item>
         <item name="android:paddingBottom">10dip</item>
@@ -39,6 +39,16 @@
 
     <style name="MediaImageButton.Rewind">
         <item name="android:src">@drawable/rewind_button</item>
+        <item name="android:contentDescription">@string/ImageButton_Rewind</item>
+    </style>
+
+    <style name="MediaImageButton.Next">
+        <item name="android:src">@drawable/next_button</item>
+        <item name="android:contentDescription">@string/ImageButton_FastForward</item>
+    </style>
+
+    <style name="MediaImageButton.Previous">
+        <item name="android:src">@drawable/previous_button</item>
         <item name="android:contentDescription">@string/ImageButton_Rewind</item>
     </style>
 

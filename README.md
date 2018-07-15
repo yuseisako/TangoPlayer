@@ -23,7 +23,7 @@ With this app, you only need just one tap to add it.
 - Support tablet -> done
 - ~~Show "Watched" besides video file on file picker.~~  Make file name pale for the video you watched. -> done
 - Add web search button on Anki dialog. -> done
-- Button go to next or previous video. -> doing
+- Button go to next or previous video. -> done
 
 # May or may not develop.
 - Support horizontal view.

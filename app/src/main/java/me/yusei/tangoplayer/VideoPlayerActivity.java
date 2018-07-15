@@ -42,6 +42,7 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +94,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     ImageButton fileButton;
     ImageButton subtitleFastForward;
     ImageButton subtitleRewind;
+    ImageButton nextButton;
+    ImageButton previousButton;
     TextView timeCurrentTextView;
     SeekBar progressSeekBar;
     TextView timeTotalTextView;
@@ -308,6 +311,26 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     showVideoSurfaceInfo(getResources().getString(R.string.video_surface_info_seek_fast_forward) +
                             REWIND_FFWD_UNIT/1000 + getResources().getString(R.string.video_surface_info_second_unit));
                 }
+            }
+        });
+
+        nextButton = findViewById(R.id.next);
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                File nextFile = getNextPrevVideoFile(VideoPlayerConfig.getVideoFilePath(getBaseContext()), true);
+                if(nextFile!=null)
+                   showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_next), nextFile);
+            }
+        });
+
+        previousButton = findViewById(R.id.prev);
+        previousButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                File prevFile = getNextPrevVideoFile(VideoPlayerConfig.getVideoFilePath(getBaseContext()), false);
+                if(prevFile!=null)
+                    showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_prev), prevFile);
             }
         });
 
@@ -674,10 +697,34 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
+     /* ===============================================================
+      Dialog
+     =============================================================== */
+     private void showNextPrevVideoDialog(@NonNull String title, @NonNull final File videoFile){
+         updatePause();
+         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+         builder.setTitle(title);
+         builder.setMessage(getResources().getString(R.string.play_next_prev_dialog_msg)+"\n" + videoFile.getName());
+         builder.setNegativeButton(getResources().getString(R.string.ankidialog_cancel), new DialogInterface.OnClickListener() {
+             @Override
+             public void onClick(DialogInterface dialogInterface, int i) {
+                 finish();
+                 updatePlay();
+             }
+         });
+         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+             @Override
+             public void onClick(DialogInterface dialogInterface, int i) {
+                 releasePlayer();
+                 initPlayer(videoFile.toString());
+             }
+         });
+         builder.create().show();
+     }
+
     /* ============================
       Anki Dialog
      ============================ */
-
     private void showAnkiDialog(@NonNull  final String sentence){
         if(sentence.isEmpty()){
             return;
@@ -872,6 +919,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         return "";
     }
+
+
 
     /* ============================
        Other
@@ -1163,7 +1212,36 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         return false;
     }
 
+    private File getNextPrevVideoFile(String filePath, Boolean isNext){
+        File currentPlayingFile =  new File(filePath);
+        String parentDir = currentPlayingFile.getParent();
+        if(parentDir == null || ! currentPlayingFile.exists())
+            return null;
 
+        FilenameFilter filter = new FilenameFilter() {
+            public boolean accept(File file, String str){
+                //Supported video file extension. Same list is on com.nbsp.materialfilepicker.utils.FileTypeUtil
+                return (str.endsWith("avi") || str.endsWith("mov") || str.endsWith("wmv") || str.endsWith("mkv") ||
+                        str.endsWith("3gp") || str.endsWith("f4v") || str.endsWith("flv") || str.endsWith("mp4") ||
+                        str.endsWith("mpeg") || str.endsWith("webm") || str.endsWith("m4v"));
+            }
+        };
+        File[] currentDirFiles = new File(parentDir).listFiles(filter);
+
+        for(int i=0; i<currentDirFiles.length; i++){
+            File currentFile = currentDirFiles[i];
+            if(currentFile.equals(currentPlayingFile)){
+                if(isNext){
+                    if(i+1<currentDirFiles.length)
+                        return currentDirFiles[i+1];
+                }else{
+                    if(i>0)
+                        return currentDirFiles[i-1];
+                }
+            }
+        }
+        return null;
+    }
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override

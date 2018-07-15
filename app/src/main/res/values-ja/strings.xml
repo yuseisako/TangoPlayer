@@ -22,10 +22,17 @@
     <string name="ImageButton_Pause">一時停止</string>
     <string name="ImageButton_Rewind">巻き戻り</string>
     <string name="ImageButton_FastForward">早送り</string>
+    <string name="ImageButton_Next">次のファイルへ</string>
+    <string name="ImageButton_Previous">前のファイルへ</string>
     <string name="ImageButton_Setting">設定</string>
     <string name="ImageButton_Folder">他の動画ファイルを選択する</string>
     <string name="ImageButton_SubtitleFastForward">字幕早送り</string>
     <string name="ImageButton_SubtitleRewind">字幕巻き戻り</string>
+
+    <!--Play Next/Previous Video Dialog-->
+    <string name="play_next_prev_dialog_title_next">次のビデオを再生する</string>
+    <string name="play_next_prev_dialog_title_prev">前のビデオを再生する</string>
+    <string name="play_next_prev_dialog_msg">次のビデオを再生しますか？</string>
 
     <!--AnkiDialog-->
     <string name="ankidialog_title">AnkiDroidに単語カードを追加</string>
