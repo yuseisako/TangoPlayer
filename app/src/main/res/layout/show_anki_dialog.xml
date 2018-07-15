@@ -47,7 +47,7 @@
             android:id="@+id/search"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:scaleType="fitXY"
+            android:scaleType="fitCenter"
             android:src="@drawable/searching"
             android:contentDescription="@string/ankidialog_button_search" />
 
@@ -55,7 +55,7 @@
             android:id="@+id/translate"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:scaleType="fitXY"
+            android:scaleType="fitCenter"
             android:src="@drawable/translate"
             android:contentDescription="@string/ankidialog_button_translate" />
         </LinearLayout>
