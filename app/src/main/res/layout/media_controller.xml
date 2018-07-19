@@ -30,9 +30,9 @@
             style="@style/MediaImageButton.Folder"
             android:contentDescription="@string/ImageButton_Folder" />
 
-        <ImageButton android:id="@+id/prev"
-            style="@style/MediaImageButton.Previous"
-            android:contentDescription="@string/ImageButton_Previous"  />
+        <!--<ImageButton android:id="@+id/prev"-->
+            <!--style="@style/MediaImageButton.Previous"-->
+            <!--android:contentDescription="@string/ImageButton_Previous"  />-->
 
         <ImageButton android:id="@+id/rew"
             style="@style/MediaImageButton.Rewind"
@@ -54,9 +54,9 @@
             style="@style/MediaImageButton.FastForward"
             android:contentDescription="@string/ImageButton_FastForward" />
 
-        <ImageButton android:id="@+id/next"
-            style="@style/MediaImageButton.Next"
-            android:contentDescription="@string/ImageButton_Next"/>
+        <!--<ImageButton android:id="@+id/next"-->
+            <!--style="@style/MediaImageButton.Next"-->
+            <!--android:contentDescription="@string/ImageButton_Next"/>-->
 
 
         <ImageButton android:id="@+id/setting"

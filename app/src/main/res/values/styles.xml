@@ -42,15 +42,15 @@
         <item name="android:contentDescription">@string/ImageButton_Rewind</item>
     </style>
 
-    <style name="MediaImageButton.Next">
-        <item name="android:src">@drawable/next_button</item>
-        <item name="android:contentDescription">@string/ImageButton_FastForward</item>
-    </style>
+    <!--<style name="MediaImageButton.Next">-->
+        <!--<item name="android:src">@drawable/next_button</item>-->
+        <!--<item name="android:contentDescription">@string/ImageButton_FastForward</item>-->
+    <!--</style>-->
 
-    <style name="MediaImageButton.Previous">
-        <item name="android:src">@drawable/previous_button</item>
-        <item name="android:contentDescription">@string/ImageButton_Rewind</item>
-    </style>
+    <!--<style name="MediaImageButton.Previous">-->
+        <!--<item name="android:src">@drawable/previous_button</item>-->
+        <!--<item name="android:contentDescription">@string/ImageButton_Rewind</item>-->
+    <!--</style>-->
 
     <style name="MediaImageButton.Settings">
         <item name="android:src">@drawable/settings_button</item>

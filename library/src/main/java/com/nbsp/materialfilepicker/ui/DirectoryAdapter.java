@@ -11,10 +11,11 @@ import android.widget.TextView;
 
 import com.nbsp.materialfilepicker.R;
 import com.nbsp.materialfilepicker.utils.FileTypeUtils;
-import com.nbsp.materialfilepicker.utils.FileUtils;
 
 import java.io.File;
 import java.util.List;
+
+import me.yusei.common.VideoPlayerConfig;
 
 /**
  * Created by Dimorinny on 24.10.15.
@@ -77,7 +78,7 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.Dire
         holder.mFileSubtitle.setText(fileType.getDescription());
         holder.mFileTitle.setText(currentFile.getName());
         //TODO:
-        if(FileUtils.isAccessedVideoFilePath(holder.itemView.getContext(), currentFile.getAbsolutePath())){
+        if(VideoPlayerConfig.isPlayedFilePath(holder.itemView.getContext(), currentFile.getAbsolutePath())){
             holder.mFileTitle.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.accessed_file_title_color));
         }
     }

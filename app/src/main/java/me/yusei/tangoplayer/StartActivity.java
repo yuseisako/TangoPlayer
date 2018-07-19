@@ -17,6 +17,8 @@ import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import java.util.regex.Pattern;
 
+import me.yusei.common.VideoPlayerConfig;
+
 public class StartActivity extends AppCompatActivity {
     private static final int FILE_CODE = 1;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 1;
@@ -33,7 +35,6 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void startFilePickerActivity(){
-        VideoPlayerConfig.setVideoPosition(this, 0);
         new MaterialFilePicker()
                 .withActivity(this)
                 .withRequestCode(FILE_CODE)
@@ -55,7 +56,6 @@ public class StartActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == FILE_CODE && resultCode == AppCompatActivity.RESULT_OK) {
             String filePath = intent.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
-            VideoPlayerConfig.setVideoPosition(this, 0);
             startVideoPlayerActivity(filePath);
         }else if(resultCode ==  RESULT_CANCELED){
             finish();
@@ -108,10 +108,10 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void startNextActivity(){
-        if(VideoPlayerConfig.getVideoFilePath(this) == null) {
+        if(VideoPlayerConfig.getLastPlayedVideoFilePath(this) == null) {
             startFilePickerActivity();
         }else{
-            startVideoPlayerActivity(VideoPlayerConfig.getVideoFilePath(this));
+            startVideoPlayerActivity(VideoPlayerConfig.getLastPlayedVideoFilePath(this));
         }
     }
 

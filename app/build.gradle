@@ -47,4 +47,5 @@ dependencies {
     implementation 'com.github.deano2390:MaterialShowcaseView:1.2.0@aar'
     implementation 'com.ichi2.anki:api:1.1.0alpha6'
     testImplementation 'junit:junit:4.12'
+    implementation project(path: ':common')
 }

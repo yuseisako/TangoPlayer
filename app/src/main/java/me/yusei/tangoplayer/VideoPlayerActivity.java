@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
@@ -34,6 +35,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nbsp.materialfilepicker.MaterialFilePicker;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 import com.nex3z.flowlayout.FlowLayout;
 
 import org.videolan.libvlc.IVLCVout;
@@ -50,7 +53,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import me.yusei.common.PlayVideoInformation;
+import me.yusei.common.VideoPlayerConfig;
 import me.yusei.tangoplayer.anki.AnkiDroidController;
 import me.yusei.tangoplayer.anki.AnkiDroidHelper;
 import me.yusei.tangoplayer.subtitle.Caption;
@@ -64,6 +70,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
 import uk.co.deanwild.materialshowcaseview.ShowcaseConfig;
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback , LibVLC.HardwareAccelerationError{
+    private static final int FILE_CODE = 1;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_ANKI_DECK = 2;
     private static final int REWIND_FFWD_UNIT = 5000;
     private static final int SUBTITLE_DELAY_UNIT = 250;
@@ -95,8 +102,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     ImageButton fileButton;
     ImageButton subtitleFastForward;
     ImageButton subtitleRewind;
-    ImageButton nextButton;
-    ImageButton previousButton;
     TextView timeCurrentTextView;
     SeekBar progressSeekBar;
     TextView timeTotalTextView;
@@ -112,6 +117,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     AlertDialog ankiDialog;
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
+    private String currentVideoFilePath = "";
+    private String nextVideoFilePath= "";
+
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
     private static final String[] SUPPORTED_SUBTITLE_EXTENSION = {"srt", "ass", "scc", "ttml"};
 
@@ -128,21 +136,37 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     @Override
     public void onResume() {
         super.onResume();
-        // Receive path to play from intent
-        Intent intent = getIntent();
-        //String videoFilePath = intent.getExtras().getString(VideoPlayerConfig.LOCATION);
-        String videoFilePath = intent.getStringExtra(VideoPlayerConfig.LOCATION);
-        if(videoFilePath == null){
-            videoFilePath = VideoPlayerConfig.getVideoFilePath(this);
-        }
-        if ( videoFilePath == null || ! initPlayer(videoFilePath)) {
-            releasePlayer();
-            intent = new Intent(this, StartActivity.class);
-            startActivity(intent);
+
+        if( ! nextVideoFilePath.isEmpty()){
+            if( ! initPlayer(nextVideoFilePath)){
+                releasePlayer();
+                startFilePicker();
+            }else {
+                //TODO here? or onCreate?
+                mAnkiDroidHelper = new AnkiDroidHelper(this);
+                mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
+            }
+            nextVideoFilePath = "";
         }else{
-            mAnkiDroidHelper = new AnkiDroidHelper(this);
-            mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
+            // Receive path to play from intent
+            Intent intent = getIntent();
+            String videoFilePath = intent.getStringExtra(VideoPlayerConfig.LOCATION);
+            if(videoFilePath != null){
+                intent.removeExtra(VideoPlayerConfig.LOCATION);
+            }else{
+                //TODO: showError Toast
+                videoFilePath = VideoPlayerConfig.getLastPlayedVideoFilePath(this);
+            }
+            if( videoFilePath==null || ! initPlayer(videoFilePath)){
+                releasePlayer();
+                startFilePicker();
+            }else {
+                //TODO here? or onCreate?
+                mAnkiDroidHelper = new AnkiDroidHelper(this);
+                mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
+            }
         }
+
     }
 
     @Override
@@ -154,18 +178,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     @Override
     public void onStop() {
         super.onStop();
-        if (mSurfaceView != null) {
-            if (mBackPressed) {
-                releasePlayer();
-            }
+        if (mSurfaceView != null || libvlc != null) {
+            releasePlayer();
         }
+//        if (mSurfaceView != null) {
+//            if (mBackPressed) {
+//                releasePlayer();
+//            }
+//        }
     }
 
     @Override
     protected void onDestroy() {
         //called this method when resume app
         super.onDestroy();
-        releasePlayer();
+        if (mSurfaceView != null || libvlc != null) {
+            releasePlayer();
+        }
     }
 
     @Override
@@ -174,7 +203,29 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         super.onBackPressed();
     }
 
+    //TODO: move
+    public void startFilePicker(){
+        new MaterialFilePicker()
+                .withActivity(this)
+                .withRequestCode(FILE_CODE)
+                //.withFilter(Pattern.compile(".*\\.avi"))
+                .withFilter(Pattern.compile(".*\\.(avi|flv|mp4|mkv|3gp|asf|m4v|m2v|mov|mpeg|mpg)$")) // Filtering files and directories by file name using regexp
+                .withFilterDirectories(false) // Set directories filterable (false by default)
+                .withHiddenFiles(false) // Show hidden files and folders
+                .start();
+    }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == FILE_CODE && resultCode == AppCompatActivity.RESULT_OK) {
+            String filePath = intent.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+            if(filePath!=null){
+                nextVideoFilePath = filePath;
+            }else{
+                //TODO: showError Toast
+                startFilePicker();
+            }
+        }
+    }
 
     /* ===============================================================
        Task
@@ -227,7 +278,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     /**
      * Run background async task: reading srt file, and call back this class.
      */
-    private void startReadSrtFileTask(){
+    private void startReadSrtFileTask(String subtitleFilePath){
         ReadSubtitleFileTask task = new ReadSubtitleFileTask(new ReadSubtitleFileTaskCallback() {
             @Override
             public void onPreExecute() {
@@ -254,7 +305,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 //do nothing.
             }
         });
-        task.setSubtitleFilePath(VideoPlayerConfig.getSubtitleFilePath(this));
+        task.setSubtitleFilePath(subtitleFilePath);
         task.execute(timedTextObject);
     }
 
@@ -294,6 +345,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
             }
         });
+        rewindButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                File prevFile = getNextPrevVideoFile(currentVideoFilePath, false);
+                if(prevFile!=null)
+                    showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_prev), prevFile);
+                return true;
+            }
+        });
 
         playPauseButton = findViewById(R.id.playpause);
         playPauseButton.setOnClickListener(new View.OnClickListener() {
@@ -314,24 +374,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
             }
         });
-
-        nextButton = findViewById(R.id.next);
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        fastForwardButton.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View view) {
-                File nextFile = getNextPrevVideoFile(VideoPlayerConfig.getVideoFilePath(getBaseContext()), true);
+            public boolean onLongClick(View view) {
+                File nextFile = getNextPrevVideoFile(currentVideoFilePath, true);
                 if(nextFile!=null)
-                   showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_next), nextFile);
-            }
-        });
-
-        previousButton = findViewById(R.id.prev);
-        previousButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                File prevFile = getNextPrevVideoFile(VideoPlayerConfig.getVideoFilePath(getBaseContext()), false);
-                if(prevFile!=null)
-                    showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_prev), prevFile);
+                    showNextPrevVideoDialog(getResources().getString(R.string.play_next_prev_dialog_title_next), nextFile);
+                return true;
             }
         });
 
@@ -339,11 +388,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         fileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                releasePlayer();
-                VideoPlayerConfig.setVideoFilePath(getBaseContext(), null);
-                Intent intent = new Intent(getBaseContext(), StartActivity.class);
-                startActivity(intent);
-                finish();
+ //               releasePlayer();
+//                VideoPlayerConfig.setPlayVideoInformation(getBaseContext(), null);
+//                Intent intent = new Intent(getBaseContext(), StartActivity.class);
+//                startActivity(intent);
+//                finish();
+                startFilePicker();
             }
         });
         fileButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -792,9 +842,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                         String deckName = sharedPreferences.getString(getResources().getString(R.string.key_list_deck_name), getResources().getString(R.string.pref_deck_name_default));
                         if(deckName.equals(getResources().getString(R.string.pref_deck_name_default))){
-                            String videoFileName = VideoPlayerConfig.getVideoFileName(getApplicationContext());
-                            if(videoFileName != null){
-                                deckName = videoFileName.substring(0, videoFileName.lastIndexOf("."));
+                            if(currentVideoFilePath != null && ! currentVideoFilePath.isEmpty()){
+                                File currentVideoFile = new File(currentVideoFilePath);
+                                String currentVideoFileName = currentVideoFile.getName();
+                                deckName = currentVideoFileName.substring(0, currentVideoFileName.lastIndexOf("."));
                             }
                         }else {
                             deckName = "Tango Player";
@@ -1018,28 +1069,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      * @return true if uri is valid and playable. false if uri is null or invalid.
      */
     private boolean initPlayer(@NonNull String filePath) {
+        currentVideoFilePath = "";
+
         //init UI
         mSurfaceView = findViewById(R.id.video_view);
         mSurfaceHolder = mSurfaceView.getHolder();
 
-        Boolean isSeek = false;
-        String videoFilePath = VideoPlayerConfig.getVideoFilePath(this);
-        if(videoFilePath != null && filePath.compareTo(videoFilePath) == 0){
-            isSeek = true;
-        }
+        @Nullable PlayVideoInformation playVideoInformation = VideoPlayerConfig.getPlayVideoInformation(this, filePath);
 
-        if(createPlayer(filePath, isSeek)){
-            VideoPlayerConfig.setVideoFilePath(this, filePath);
-            VideoPlayerConfig.setAccessedVideoFilePath(getBaseContext(), filePath);
-        }else {
+        if(! createPlayer(filePath, playVideoInformation)){
             return false;
         }
 
         initControllerView();
         drawOverlayProgress();
 
-        if (isSubtitleFileExist(filePath)) {
-            startReadSrtFileTask();
+        String subtitleFilePath = isSubtitleFileExist(filePath);
+        if (subtitleFilePath!=null) {
+            startReadSrtFileTask(subtitleFilePath);
         }else{
             ListView listView = findViewById(R.id.subtitleListView);
             listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -1050,11 +1097,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         showTutorial();
 
+//        VideoPlayerConfig.setPlayVideoInformation(this, filePath);
+//        VideoPlayerConfig.setAccessedVideoFilePath(getBaseContext(), filePath);
+        currentVideoFilePath = filePath;
+
         return true;
     }
 
-    private Boolean createPlayer(String media, Boolean isSeek) {
-        releasePlayer();
+    private Boolean createPlayer(String media, final PlayVideoInformation playVideoInformation) {
         try {
             // Create LibVLC
             ArrayList<String> options = new ArrayList<>();
@@ -1077,7 +1127,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             // Set up video output
             final IVLCVout vout = mMediaPlayer.getVLCVout();
             vout.setVideoView(mSurfaceView);
-            if(mSubtitlesSurface != null){
+            if (mSubtitlesSurface != null) {
                 vout.setSubtitlesView(mSubtitlesSurface);
             }
             vout.addCallback(this);
@@ -1088,7 +1138,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             Media m = new Media(libvlc, Uri.parse("file://" + media));
             m.parse();
             //TODO wait until parse finished, then check if media is parsed
-            if(m.getDuration() <= 0){
+            if (m.getDuration() <= 0) {
                 m.release();
                 return false;
             }
@@ -1096,11 +1146,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mMediaPlayer.setMedia(m);
             m.release();
 
-            if(ankiDialog == null || !ankiDialog.isShowing()){
+            if (ankiDialog == null || !ankiDialog.isShowing()) {
                 mMediaPlayer.play();
             }
 
-            if(playPauseButton != null){
+            if (playPauseButton != null) {
                 playPauseButton.setImageResource(R.drawable.ic_media_pause);
             }
 
@@ -1109,23 +1159,25 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //                isSeek = false;
 //            }
 
-            if(isSeek){
-                //While return -1 from getTime(), you cannot seek video. It happen only right after load media.
-                final Handler handler = new Handler();
-                final Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        if(mMediaPlayer.getTime() > 0){
-                            mMediaPlayer.setTime(VideoPlayerConfig.getVideoPosition(getBaseContext()));
-                            subtitleDelay = VideoPlayerConfig.getVideoDelay(getBaseContext());
-                        }else{
-                            handler.postDelayed(this, 100);
+            if (playVideoInformation != null) {
+                if (playVideoInformation.position != 0L) {
+                    //While return -1 from getTime(), you cannot seek video. It happen only right after load media.
+                    final Handler handler = new Handler();
+                    final Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mMediaPlayer.getTime() > 0) {
+                                mMediaPlayer.setTime(playVideoInformation.position);
+                            } else {
+                                handler.postDelayed(this, 100);
+                            }
                         }
-                    }
-                };
-                handler.post(r);
+                    };
+                    handler.post(r);
+                }
+                subtitleDelay = playVideoInformation.delay;
             }
-        } catch (Exception e) {
+        } catch(Exception e){
             Toast.makeText(this, getResources().getString(R.string.error_msg_exception_create_player) + e.toString(), Toast.LENGTH_LONG).show();
             return false;
         }
@@ -1169,15 +1221,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         }
         long currentPosition = mMediaPlayer.getTime();
-        VideoPlayerConfig.setVideoPosition(this, currentPosition);
-        VideoPlayerConfig.setVideoDelay(this, subtitleDelay);
+        VideoPlayerConfig.setPlayVideoInformation(this, currentVideoFilePath, currentPosition, subtitleDelay);
         setSubtitleTextView(null);
 
         mMediaPlayer.stop();
         final IVLCVout vout = mMediaPlayer.getVLCVout();
         vout.removeCallback(this);
         vout.detachViews();
+        mSurfaceView = null;
         mSurfaceHolder = null;
+        showVideoSurfaceInfo("");
         libvlc.release();
         libvlc = null;
         //stop handler
@@ -1191,12 +1244,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      * Check if subtitle file is exist or not
      *
      * @param filePath video file
-     * @return return true if the file is exist. return false if the file is not exist.
+     * @return filePath. return null if it is not found.
      */
-    private boolean isSubtitleFileExist(@NonNull String filePath) {
+    private String isSubtitleFileExist(@NonNull String filePath) {
         int numExtension = filePath.lastIndexOf(".");
         if (numExtension < 0) {
-            return false;
+            return null;
         }
         //Remove extension
         filePath = filePath.substring(0, numExtension + 1);
@@ -1205,11 +1258,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             String subtitleFilePath = filePath + subtitleSupportExtension;
             File subtitleFile = new File(subtitleFilePath);
             if (subtitleFile.exists()) {
-                VideoPlayerConfig.setSubtitleFilePath(this, subtitleFilePath);
-                return true;
+                return subtitleFilePath;
             }
         }
-        return false;
+        return null;
     }
 
     private File getNextPrevVideoFile(String filePath, Boolean isNext){
