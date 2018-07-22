@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">単語動画プレイヤー</string>
+    <string name="app_name">単語プレイヤー</string>
     <!--Error Message-->
     <string name="error_msg_no_acccess_to_anki_db">[E-1]: AnkiDroidのデータベースにアクセスできませんでした。 AnkiDroidアプリでストレージへのアクセスを許可しているか確認してください。</string>
     <string name="error_msg_no_write_storage_permission">[E-2]: ストレージへのアクセス権がありません。アクセス権のダイアログで「許可」を選択してください。</string>
@@ -8,11 +8,12 @@
     <string name="error_msg_anki_not_installed">[E-4]: 単語カード追加に失敗しました。はじめに、AnkiDroidのインストールしてください。</string>
     <string name="error_msg_exception_create_player">[E-5]: 動画プレイヤーの処理に失敗しました。</string>
     <string name="error_msg_hardware_accelaration">[E-6]: ハードウェアアクセラレーションの処理に失敗しました。</string>
+    <string name="error_msg_file_name_null">[E-6]: ファイル名が不正です。もう一度ファイルを選んでください。</string>
 
     <!--Warning Message-->
     <string name="warn_msg_subtitle_not_found1">字幕ファイルがみつかりませんでした。</string>
     <string name="warn_msg_subtitle_not_found2">動画ファイルと同名の字幕ファイルを用意してください。</string>
-    <string name="warn_msg_empty_input">この欄に入力してください</string>
+    <string name="warn_msg_empty_input">この欄を入力してください</string>
 
     <!--Information Message-->
     <string name="info_msg_anki_card_is_added">カードを追加しました。</string>

@@ -7,6 +7,7 @@
     <string name="error_msg_anki_not_installed">[E-4]: Failed to add card. Please install AnkiDroid First.</string>
     <string name="error_msg_exception_create_player">[E-5]: Error creating player!</string>
     <string name="error_msg_hardware_accelaration">[E-6]: Error with hardware acceleration.</string>
+    <string name="error_msg_file_name_null">[E-6]: The file name is illegal. Please choose file again.</string>
 
     <!--Warning Message-->
     <string name="warn_msg_subtitle_not_found1">Subtitle file is NOT found.</string>

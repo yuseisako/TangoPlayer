@@ -3,11 +3,13 @@ package me.yusei.tangoplayer;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -113,12 +115,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private TimedTextObject timedTextObject = new TimedTextObject();
     Runnable scrollSubtitleRunnable;
-    private boolean mBackPressed;
     AlertDialog ankiDialog;
     private AnkiDroidHelper mAnkiDroidHelper;
     private AnkiDroidController mAnkiDroidController;
     private String currentVideoFilePath = "";
     private String nextVideoFilePath= "";
+
+    private int musicVolumeBefore = 0;
 
     private static final String[] WORDS_REPLACE_LIST = {",", "- ", ".", "[", "]", "\"" };
     private static final String[] SUPPORTED_SUBTITLE_EXTENSION = {"srt", "ass", "scc", "ttml"};
@@ -131,20 +134,18 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
+
+        mAnkiDroidHelper = new AnkiDroidHelper(this);
+        mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
         if( ! nextVideoFilePath.isEmpty()){
             if( ! initPlayer(nextVideoFilePath)){
                 releasePlayer();
                 startFilePicker();
-            }else {
-                //TODO here? or onCreate?
-                mAnkiDroidHelper = new AnkiDroidHelper(this);
-                mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
             }
             nextVideoFilePath = "";
         }else{
@@ -154,25 +155,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if(videoFilePath != null){
                 intent.removeExtra(VideoPlayerConfig.LOCATION);
             }else{
-                //TODO: showError Toast
                 videoFilePath = VideoPlayerConfig.getLastPlayedVideoFilePath(this);
             }
             if( videoFilePath==null || ! initPlayer(videoFilePath)){
                 releasePlayer();
                 startFilePicker();
-            }else {
-                //TODO here? or onCreate?
-                mAnkiDroidHelper = new AnkiDroidHelper(this);
-                mAnkiDroidController = new AnkiDroidController(this, mAnkiDroidHelper);
             }
         }
 
+        musicVolumeBefore = getCurrentMusicVolume();
+        setCurrentMusicVolume(VideoPlayerConfig.getMusicVolume(this));
     }
 
     @Override
     public void onPause() {
         super.onPause();
         releasePlayer();
+        VideoPlayerConfig.setMusicVolume(this, getCurrentMusicVolume());
+        setCurrentMusicVolume(musicVolumeBefore);
     }
 
     @Override
@@ -181,11 +181,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mSurfaceView != null || libvlc != null) {
             releasePlayer();
         }
-//        if (mSurfaceView != null) {
-//            if (mBackPressed) {
-//                releasePlayer();
-//            }
-//        }
     }
 
     @Override
@@ -197,13 +192,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        mBackPressed = true;
-        super.onBackPressed();
-    }
-
-    //TODO: move
     public void startFilePicker(){
         new MaterialFilePicker()
                 .withActivity(this)
@@ -221,7 +209,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if(filePath!=null){
                 nextVideoFilePath = filePath;
             }else{
-                //TODO: showError Toast
+                Toast.makeText(this, getResources().getString(R.string.error_msg_file_name_null), Toast.LENGTH_SHORT).show();
                 startFilePicker();
             }
         }
@@ -890,10 +878,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String word = ((EditText)(layout.findViewById(R.id.add_word))).getText().toString();
-                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, word);
-                startActivity(intent);
+                EditText editTextWord = layout.findViewById(R.id.add_word);
+                String word = editTextWord.getText().toString();
+                if(!word.isEmpty()){
+                    Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                    intent.putExtra(SearchManager.QUERY, word);
+                    startActivity(intent);
+                }else{
+                    editTextWord.setError(getResources().getString(R.string.warn_msg_empty_input));
+                }
             }
         });
 
@@ -1137,7 +1130,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             Media m = new Media(libvlc, Uri.parse("file://" + media));
             m.parse();
-            //TODO wait until parse finished, then check if media is parsed
             if (m.getDuration() <= 0) {
                 m.release();
                 return false;
@@ -1216,12 +1208,27 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         return true;
     }
 
+    private int getCurrentMusicVolume(){
+        AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        if(audio!=null){
+            return audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
+        return -1;
+    }
+
+    private void setCurrentMusicVolume(int volume){
+        AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        if(audio != null)
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+    }
+
     private void releasePlayer() {
         if (libvlc == null){
             return;
         }
         long currentPosition = mMediaPlayer.getTime();
-        VideoPlayerConfig.setPlayVideoInformation(this, currentVideoFilePath, currentPosition, subtitleDelay);
+        if(currentPosition >= 0)
+            VideoPlayerConfig.setPlayVideoInformation(this, currentVideoFilePath, currentPosition, subtitleDelay);
         setSubtitleTextView(null);
 
         mMediaPlayer.stop();
