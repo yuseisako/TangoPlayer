@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -56,6 +57,22 @@ public class SettingsFragment extends PreferenceFragment {
                 return true;
             }
         };
+        Preference translate = findPreference(getResources().getString(R.string.key_translation));
+        Preference.OnPreferenceChangeListener translateChangeListener = new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+                Preference translateLanguage = findPreference(getResources().getString(R.string.key_list_translation_language));
+                if((Boolean) newValue){
+                    translateLanguage.setEnabled(true);
+                }else{
+                    translateLanguage.setEnabled(false);
+                }
+                return true;
+            }
+        };
+        translate.setOnPreferenceChangeListener(translateChangeListener);
+
         Preference license = findPreference(getResources().getString(R.string.key_license));
         license.setOnPreferenceClickListener(licenseClickListener);
 

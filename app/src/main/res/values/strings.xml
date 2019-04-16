@@ -43,6 +43,7 @@
     <string name="ankidialog_hint_sentence">Sentence</string>
     <string name="ankidialog_hint_word_meaning">Word meaning</string>
     <string name="ankidialog_hint_sentence_meaning">Sentence meaning</string>
+    <string name="ankidialog_hint_note">Note</string>
     <string name="ankidialog_cancel">Cancel</string>
 
     <!--Subtitle Translation Task-->

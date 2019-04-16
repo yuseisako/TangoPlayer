@@ -1,6 +1,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     <PreferenceCategory android:title="AnkiDroid Dialog" >
+        <SwitchPreference
+            android:title="Translation"
+            android:key="@string/key_translation"
+            android:selectable="true"
+            android:defaultValue="false"
+            android:summary="Translate the words in foreign language. Recommend to OFF for faster learning" />
         <ListPreference
+            android:enabled="false"
             android:title="Translation Language"
             android:key="@string/key_list_translation_language"
             android:entries="@array/pref_translation_language"

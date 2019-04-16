@@ -17,21 +17,39 @@ public class AnkiDroidController {
     //AnkiDroid API
     private AnkiDroidHelper mAnkiDroid;
     private Context mContext;
-    private static final String MODEL_NAME = "tangoplayer";
+    private static final String MODEL_NAME = "TangoPlayer";
+
     private static final Set<String> TAGS = new HashSet<>(Collections.singletonList("TangoPlayer"));
-    // List of field names that will be used in AnkiDroid model
-    public static final String[] FIELDS = {"Word", "Meaning", "Sentence", "SentenceMeaning"};
-    // Template for the question of each card
+    // List of field names that will be used in AnkiDroid model -- Translation ON
+    public static final String[] FIELDS_Translation = {"Word", "Meaning", "Sentence", "SentenceMeaning", "Note"};
+
+    // List of field names that will be used in AnkiDroid model -- Translation OFF
+    public static final String[] FIELDS_NonTranslation = {"Word", "Meaning", "Sentence", "Note"};
+
+    // Template for the question of each card -- Translation ON
     private static final String QFMT1 = "<div class=big>{{Word}}</div><br>{{Sentence}}";
-    private static final String QFMT2 = "<div class=big>{{Meaning}}</div><br>{{SentenceMeaning}}</div>";
-    private static final String[] QFMT = {QFMT1, QFMT2};
-    // Template for the answer (use identical for both sides)
+    private static final String QFMT2 = "<div class=big>{{Meaning}}</div><br>{{SentenceMeaning}}<br>{{Note}}";
+    private static final String[] QFMT_Translation = {QFMT1, QFMT2};
+
+    // Templete for the question of each card -- Translation OFF
+    private static final String QFMT3 = "<div class=big>{{Meaning}}</div><br>{{Note}}";
+    private static final String[] QFMT_NonTranslation = {QFMT1, QFMT3};
+
+    // Template for the answer (use identical for both sides) -- Translation ON
     private static final String AFMT1 = "<div class=big>{{Word}}</div>{{Meaning}}<br><br>\n" +
             "<div class=small>{{Sentence}}<br>{{SentenceMeaning}}</div>" +
-            "<br><br>\n" +
+            "<br>{{Note}}<br>\n" +
             "<div class=small>TAG: {{Tags}}</div>";
-    private static final String[] AFMT = {AFMT1, AFMT1};
-    private static String[] cardName = {"", ""};
+    private static final String[] AFMT_Translation = {AFMT1, AFMT1};
+
+    // Template for the answer (use identical for both sides) -- Translation OFF
+    private static final String AFMT2 = "<div class=big>{{Word}}</div>{{Meaning}}<br><br>\n" +
+            "<div class=small>{{Sentence}}</div>" +
+            "<br>{{Note}}<br>\n" +
+            "<div class=small>TAG: {{Tags}}</div>";
+    private static final String[] AFMT_NonTranslation = {AFMT2, AFMT2};
+
+    private static String[] cardName = {"Answer the meaning", "Answer the new vocabulary"};
 
     // CSS to share between all the cards (optional). User will need to install the NotoSans font by themselves
     private static final String CSS = ".card {\n" +
@@ -52,6 +70,12 @@ public class AnkiDroidController {
         mAnkiDroid = ankiDroidHelper;
     }
 
+    /**
+     *
+     * @param deckName
+     * @param data
+     * @param translationLanguage put "None" if NonTranslation
+     */
     public void addCardsToAnkiDroid(@NonNull String deckName, List<Map<String, String>> data, @NonNull String translationLanguage){
         if(deckName.isEmpty() || translationLanguage.isEmpty()){
             return;
@@ -63,10 +87,16 @@ public class AnkiDroidController {
             return;
         }
 
-        cardName[0] = "English>"+translationLanguage;
-        cardName[1] = translationLanguage+">English";
+        Boolean isTranslation = false;
+        if(translationLanguage.compareTo("None") != 0){
+            isTranslation = true;
+        }
 
-        long modelId = getModelId(deckName);
+//        //TODO: Limiting original language to English. Detect language.
+//        cardName[0] = "English>" + translationLanguage;
+//        cardName[1] = translationLanguage + ">English";
+
+        long modelId = getModelId(deckName, isTranslation);
         String[] fieldNames = mAnkiDroid.getApi().getFieldList(modelId);
         // Build list of fields and tags
         LinkedList<String []> fields = new LinkedList<>();
@@ -76,8 +106,14 @@ public class AnkiDroidController {
             String[] flds = new String[fieldNames.length];
             for (int i = 0; i < flds.length; i++) {
                 // Fill up the fields one-by-one until either all fields are filled or we run out of fields to send
-                if (i < FIELDS.length) {
-                    flds[i] = fieldMap.get(FIELDS[i]);
+                if(isTranslation){
+                    if (i < FIELDS_Translation.length) {
+                        flds[i] = fieldMap.get(FIELDS_Translation[i]);
+                    }
+                }else{
+                    if (i < FIELDS_NonTranslation.length) {
+                        flds[i] = fieldMap.get(FIELDS_NonTranslation[i]);
+                    }
                 }
             }
             tags.add(TAGS);
@@ -107,7 +143,7 @@ public class AnkiDroidController {
         return did;
     }
 
-    private long getModelId(String deckName) {
+    private long getModelId(String deckName, Boolean isTranslation) {
         Long mid;
 
         try{
@@ -117,9 +153,15 @@ public class AnkiDroidController {
         }
 
         if (mid == null) {
-            mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS,
-                    cardName, QFMT, AFMT, CSS, getDeckId(deckName), null);
-            mAnkiDroid.storeModelReference(MODEL_NAME, mid);
+            if(isTranslation) {
+                mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS_Translation,
+                        cardName, QFMT_Translation, AFMT_Translation, CSS, getDeckId(deckName), null);
+                mAnkiDroid.storeModelReference(MODEL_NAME, mid);
+            }else {
+                mid = mAnkiDroid.getApi().addNewCustomModel(MODEL_NAME, FIELDS_NonTranslation,
+                        cardName, QFMT_NonTranslation, AFMT_NonTranslation, CSS, getDeckId(deckName), null);
+                mAnkiDroid.storeModelReference(MODEL_NAME, mid);
+            }
         }
         return mid;
     }

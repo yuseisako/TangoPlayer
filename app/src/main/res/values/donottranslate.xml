@@ -3,6 +3,7 @@
     <!-- Strings related to Settings -->
     <string name="pref_translation_language_default">ja</string>
     <string name="pref_deck_name_default">video</string>
+    <string name="key_translation">KeyTranslation</string>
     <string name="key_list_translation_language">KeyListTranslationLanguage</string>
     <string name="key_list_deck_name">KeyListDeckName</string>
     <string name="key_license">KeyLicense</string>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/show_anki_dialog_nontranslation"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/add_sentence"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/ankidialog_hint_sentence"/>
+
+    <com.nex3z.flowlayout.FlowLayout
+        android:id="@+id/word_buttons"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:flChildSpacing="0dp"
+        app:flChildSpacingForLastRow="align"
+        app:flRowSpacing="0dp">
+
+    </com.nex3z.flowlayout.FlowLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/add_word"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="100dp"
+            android:hint="@string/ankidialog_hint_word"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true">
+
+            <ImageButton
+            android:id="@+id/search"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/searching"
+            android:contentDescription="@string/ankidialog_button_search" />
+
+            <!--<ImageButton-->
+            <!--android:id="@+id/translate"-->
+            <!--android:layout_width="50dp"-->
+            <!--android:layout_height="50dp"-->
+            <!--android:scaleType="fitCenter"-->
+            <!--android:src="@drawable/translate"-->
+            <!--android:contentDescription="@string/ankidialog_button_translate" />-->
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/add_word_meaning"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="@string/ankidialog_hint_word_meaning"/>
+
+    <EditText
+        android:id="@+id/add_note"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:hint="@string/ankidialog_hint_note"/>
+
+
+</LinearLayout>

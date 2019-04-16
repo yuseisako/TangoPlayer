@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/show_anki_dialog"
+    android:id="@+id/show_anki_dialog_translation"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -73,5 +73,12 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:hint="@string/ankidialog_hint_sentence_meaning"/>
+
+    <EditText
+        android:id="@+id/add_note"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:hint="@string/ankidialog_hint_note"/>
+
 
 </LinearLayout>

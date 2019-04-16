@@ -44,6 +44,7 @@
     <string name="ankidialog_hint_sentence">文</string>
     <string name="ankidialog_hint_word_meaning">単語の意味</string>
     <string name="ankidialog_hint_sentence_meaning">文の意味</string>
+    <string name="ankidialog_hint_note">備考</string>
     <string name="ankidialog_cancel">キャンセル</string>
 
     <!--Subtitle Translation Task-->
