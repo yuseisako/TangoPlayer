@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -884,28 +885,30 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        if(isTranslation) {
-            ImageButton translateButton = layout.findViewById(R.id.translate);
-            translateButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    EditText wordEditText = layout.findViewById(R.id.add_word);
-                    String word = wordEditText.getText().toString();
+        ImageButton translateButton = layout.findViewById(R.id.translate);
+        translateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText wordEditText = layout.findViewById(R.id.add_word);
+                String word = wordEditText.getText().toString();
 
-                    EditText editTextWordMeaning = layout.findViewById(R.id.add_word_meaning);
+                EditText editTextWordMeaning = layout.findViewById(R.id.add_word_meaning);
 
-                    String sentence = ((TextView) layout.findViewById(R.id.add_sentence)).getText().toString();
-                    EditText editTextSentenceMeaning = layout.findViewById(R.id.add_sentence_meaning);
+                String sentence = ((TextView) layout.findViewById(R.id.add_sentence)).getText().toString();
+                EditText editTextSentenceMeaning = layout.findViewById(R.id.add_sentence_meaning);
 
-                    if (!word.isEmpty()) {
+                if (!word.isEmpty()) {
+                    if(isTranslation) {
                         startTranslateTask(editTextWordMeaning, word);
                         startTranslateTask(editTextSentenceMeaning, sentence);
-                    } else {
-                        wordEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
+                    }else{
+                        startOfflineDictonaryApp(word);
                     }
+                } else {
+                    wordEditText.setError(getResources().getString(R.string.warn_msg_empty_input));
                 }
-            });
-        }
+            }
+        });
 
         ImageButton searchButton = layout.findViewById(R.id.search);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -1049,6 +1052,20 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 getResources().getString(R.string.tutorial_video_surface), getResources().getString(R.string.button_ok));
 
         sequence.start();
+    }
+
+    void startOfflineDictonaryApp(String word){
+        Intent intent = new Intent(Intent.ACTION_SEARCH);
+        intent.setPackage("livio.pack.lang.en_US");
+        intent.putExtra(SearchManager.QUERY, word);
+        if(isIntentAvailable(this, intent)) // check if intent is available ?
+            startActivity(intent);
+        else{Toast.makeText(this, "Please install [English Dictionary - Offline] by Livio", Toast.LENGTH_SHORT).show();}
+    }
+
+    boolean isIntentAvailable(Context context, Intent intent) {
+        List<ResolveInfo> lri = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return (lri != null) && (lri.size() > 0);
     }
 
     /* ===============================================================
