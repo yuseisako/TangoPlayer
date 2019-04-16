@@ -25,8 +25,11 @@ With this app, you only need just one tap to add it.
 - Add web search button on Anki dialog. -> done
 - Button go to next or previous video. -> done
 - Auto save video file path, position, subtitle delay -> done
+- Add translation ON/OFF switch. (Default OFF) -> done
+- Integrated with offline English dictionary app.
 
 # May or may not develop.
+- Add screenshot into a card. (Effective for learning language?)
 - Support horizontal view.
 - Auto download subtitle.
 
