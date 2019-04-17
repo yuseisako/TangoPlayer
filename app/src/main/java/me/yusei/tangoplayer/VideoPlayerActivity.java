@@ -638,7 +638,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         String line = caption.content.replace("<br />", " ");
         if( ( line.contains("<b>") && line.contains("</b>") ) ||
                 ( line.contains("<i>") && line.contains("</i>") ) ||
-                ( line.contains("<font color=") && line.contains("</font>") ) ){
+                ( line.contains("<font") && line.contains("</font>") ) ){
             Spanned durationSpanned;
             if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 durationSpanned = Html.fromHtml(line,Html.FROM_HTML_MODE_LEGACY);
@@ -662,14 +662,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(subtitle.contains("<u>") && subtitle.contains("</u>")){
             subtitle = subtitle.replaceAll("<u>", "").replaceAll("</u>", "");
         }
-        if(subtitle.contains("<font color=") && subtitle.contains("</font>")){
-            subtitle = subtitle.replaceAll("<font color=\"#......\">", "").
-                    replaceAll("</font>","").
-                    replaceAll("<font color=#......>","").
-                    replaceAll("<font color=\"red\">", "").
-                    replaceAll("<font color=\"green\">", "").
-                    replaceAll("<font color=\"blue\">", "");
-        }
+        subtitle = android.text.Html.fromHtml(subtitle).toString();
         return subtitle;
     }
 
